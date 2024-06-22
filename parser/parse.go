@@ -274,18 +274,21 @@ func parseDATAVKV3(context *parseContext, block *source2.FileBlock) error {
 }
 func parseDataKV3(context *parseContext, block *source2.FileBlock, version int) error {
 	reader := context.reader
-	reader.Seek(int64(block.Offset + 4 + 16), io.SeekStart)
+	reader.Seek(int64(block.Offset+4+16), io.SeekStart)
 
 	var compressionMethod, singleByteCount, quadByteCount, eightByteCount uint32
-	var compressionDictionaryId, compressionFrameSize uint16
+	var dictionaryTypeLength, decodeLength, compressedLength uint32
+	var blobCount, totalUncompressedBlobSize uint32
+	var unknown5, unknown6 uint32
+	var compressionDictionaryId, compressionFrameSize, unknown3, unknown4 uint16
 	var err error
-	compressedLength := block.Length
+	compressedLength = block.Length
 
 	err = binary.Read(reader, binary.LittleEndian, &compressionMethod)
 	if err != nil {
 		return fmt.Errorf("Failed to read compressionMethod in parseDataKV3: <%w>", err)
 	}
-	if (version >= 2) {
+	if version >= 2 {
 		err = binary.Read(reader, binary.LittleEndian, &compressionDictionaryId)
 		if err != nil {
 			return fmt.Errorf("Failed to read compressionDictionaryId in parseDataKV3: <%w>", err)
@@ -310,71 +313,79 @@ func parseDataKV3(context *parseContext, block *source2.FileBlock, version int) 
 		return fmt.Errorf("Failed to read eightByteCount in parseDataKV3: <%w>", err)
 	}
 
-	log.Println(compressionMethod, compressionDictionaryId, compressionFrameSize, singleByteCount, quadByteCount, eightByteCount, compressedLength)
-
-/*
-	format 	 := make([]byte, 16)
-	_, err := reader.Read(format)
-	if err != nil {
-		return fmt.Errorf("Failed to read format in parseDATAVKV3: <%w>", err)
+	if version >= 2 {
+		err = binary.Read(reader, binary.LittleEndian, &dictionaryTypeLength)
+		if err != nil {
+			return fmt.Errorf("Failed to read dictionaryTypeLength in parseDataKV3: <%w>", err)
+		}
+		err = binary.Read(reader, binary.LittleEndian, &unknown3)
+		if err != nil {
+			return fmt.Errorf("Failed to read unknown3 in parseDataKV3: <%w>", err)
+		}
+		err = binary.Read(reader, binary.LittleEndian, &unknown4)
+		if err != nil {
+			return fmt.Errorf("Failed to read unknown4 in parseDataKV3: <%w>", err)
+		}
 	}
-	log.Println(string(format[:]))*/
 
-	/*
-	var compressionMethod uint32
-	var resCount uint32
-	var strOffset int32
-	reader := context.reader
-	reader.Seek(int64(block.Offset), io.SeekStart)
+	err = binary.Read(reader, binary.LittleEndian, &decodeLength)
+	if err != nil {
+		return fmt.Errorf("Failed to read decodeLength in parseDataKV3: <%w>", err)
+	}
 
-	binary.Read(reader, binary.LittleEndian, &resOffset)*/
+	if version >= 2 {
+		err = binary.Read(reader, binary.LittleEndian, &compressedLength)
+		if err != nil {
+			return fmt.Errorf("Failed to read compressedLength in parseDataKV3: <%w>", err)
+		}
+		err = binary.Read(reader, binary.LittleEndian, &blobCount)
+		if err != nil {
+			return fmt.Errorf("Failed to read blobCount in parseDataKV3: <%w>", err)
+		}
+		err = binary.Read(reader, binary.LittleEndian, &totalUncompressedBlobSize)
+		if err != nil {
+			return fmt.Errorf("Failed to read totalUncompressedBlobSize in parseDataKV3: <%w>", err)
+		}
+	}
+
+	if version >= 4 {
+		err = binary.Read(reader, binary.LittleEndian, &unknown5)
+		if err != nil {
+			return fmt.Errorf("Failed to read unknown5 in parseDataKV3: <%w>", err)
+		}
+		err = binary.Read(reader, binary.LittleEndian, &unknown6)
+		if err != nil {
+			return fmt.Errorf("Failed to read unknown6 in parseDataKV3: <%w>", err)
+		}
+	}
+
+	switch compressionMethod {
+	case 0:
+		sa := make([]byte, decodeLength)
+		_, err := reader.Read(sa)
+		if err != nil {
+			return fmt.Errorf("Failed to read datas in parseDataKV3 for compression method 0: <%w>", err)
+		}
+		log.Println(sa)
+	case 1:
+		sa := make([]byte, decodeLength)
+		_, err := reader.Read(sa)
+		if err != nil {
+			return fmt.Errorf("Failed to read datas in parseDataKV3 for compression method 1: <%w>", err)
+		}
+		log.Println(sa)
+
+	}
+
+	log.Println(compressionMethod, compressionDictionaryId, compressionFrameSize, singleByteCount, quadByteCount, eightByteCount, compressedLength)
+	log.Println(dictionaryTypeLength, unknown3, unknown4, decodeLength)
+	log.Println(compressedLength, blobCount, totalUncompressedBlobSize)
 
 	/*
 		async function loadDataKv3(reader, block, version) {
 			const KV3_ENCODING_BLOCK_COMPRESSED = '\x46\x1A\x79\x95\xBC\x95\x6C\x4F\xA7\x0B\x05\xBC\xA1\xB7\xDF\xD2';
 			const KV3_ENCODING_BLOCK_COMPRESSED_LZ4 = '\x8A\x34\x47\x68\xA1\x63\x5C\x4F\xA1\x97\x53\x80\x6F\xD9\xB1\x19';
 			const KV3_ENCODING_BLOCK_COMPRESSED_UNKNOWN = '\x7C\x16\x12\x74\xE9\x06\x98\x46\xAF\xF2\xE6\x3E\xB5\x90\x37\xE7';
-
-			reader.seek(block.offset);
-
-			let method = 1;
-
-			reader.skip(4);
-			let format = reader.getString(16);
-			let compressionMethod = reader.getUint32();
-			let compressionDictionaryId;
-			let compressionFrameSize;
-			let dictionaryTypeLength, unknown3, unknown4, blobCount = 0, totalUncompressedBlobSize;
-			let unknown5, unknown6;
-			if (version >= 2) {
-				compressionDictionaryId = reader.getUint16();
-				compressionFrameSize = reader.getUint16();
-				//unknown1 = reader.getUint32();//0 or 0x40000000 depending on compression method
-			}
-			let singleByteCount = reader.getUint32();//skip this many bytes ?????
-			let quadByteCount = reader.getUint32();
-			let eightByteCount = reader.getUint32();
-			let compressedLength = block.length;
-			if (version >= 2) {
-				dictionaryTypeLength = reader.getUint32();
-				unknown3 = reader.getUint16();
-				unknown4 = reader.getUint16();
-				if (false && TESTING) {
-					console.log(dictionaryTypeLength, unknown3, unknown4, block);
-				}
-			}
-
-			var decodeLength = reader.getUint32();
-			if (version >= 2) {
-				compressedLength = reader.getUint32();
-				blobCount = reader.getUint32();
-				totalUncompressedBlobSize = reader.getUint32();
-			}
-
-			if (version >= 4) {
-				unknown5 = reader.getUint32();
-				unknown6 = reader.getUint32();
-			}
 
 			let sa;
 			let compressedBlobReader;
