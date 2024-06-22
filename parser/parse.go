@@ -42,15 +42,32 @@ func parseHeader(context *parseContext) error {
 	//var test uint32
 	var headerOffset uint32
 	var resCount uint32
+	var err error
 	reader := context.reader
-	binary.Read(reader, binary.LittleEndian, &context.file.FileLength)
-	binary.Read(reader, binary.LittleEndian, &context.file.VersionMaj)
-	binary.Read(reader, binary.LittleEndian, &context.file.VersionMin)
+
+	err = binary.Read(reader, binary.LittleEndian, &context.file.FileLength)
+	if err != nil {
+		return fmt.Errorf("Failed to read FileLength in parseHeader: <%w>", err)
+	}
+	err = binary.Read(reader, binary.LittleEndian, &context.file.VersionMaj)
+	if err != nil {
+		return fmt.Errorf("Failed to read VersionMaj in parseHeader: <%w>", err)
+	}
+	err = binary.Read(reader, binary.LittleEndian, &context.file.VersionMin)
+	if err != nil {
+		return fmt.Errorf("Failed to read VersionMin in parseHeader: <%w>", err)
+	}
 
 	currentPos, _ := context.reader.Seek(0, io.SeekCurrent)
-	binary.Read(reader, binary.LittleEndian, &headerOffset)
+	err = binary.Read(reader, binary.LittleEndian, &headerOffset)
+	if err != nil {
+		return fmt.Errorf("Failed to read headerOffset in parseHeader: <%w>", err)
+	}
 	headerOffset += uint32(currentPos)
-	binary.Read(reader, binary.LittleEndian, &resCount)
+	err = binary.Read(reader, binary.LittleEndian, &resCount)
+	if err != nil {
+		return fmt.Errorf("Failed to read resCount in parseHeader: <%w>", err)
+	}
 
 	reader.Seek(int64(headerOffset), io.SeekStart)
 
@@ -63,8 +80,14 @@ func parseHeader(context *parseContext) error {
 			return fmt.Errorf("Failed to read block type in parseHeader: <%w>", err)
 		}
 		currentPos, _ := context.reader.Seek(0, io.SeekCurrent)
-		binary.Read(reader, binary.LittleEndian, &resOffset)
-		binary.Read(reader, binary.LittleEndian, &resLength)
+		err = binary.Read(reader, binary.LittleEndian, &resOffset)
+		if err != nil {
+			return fmt.Errorf("Failed to read resOffset in parseHeader: <%w>", err)
+		}
+		err = binary.Read(reader, binary.LittleEndian, &resLength)
+		if err != nil {
+			return fmt.Errorf("Failed to read resLength in parseHeader: <%w>", err)
+		}
 
 		context.file.AddBlock(string(resType), resOffset+uint32(currentPos), resLength)
 	}
@@ -105,11 +128,18 @@ func parseRERL(context *parseContext, block *source2.FileBlock) error {
 	var resOffset uint32
 	var resCount uint32
 	var strOffset int32
+	var err error
 	reader := context.reader
 	reader.Seek(int64(block.Offset), io.SeekStart)
 
-	binary.Read(reader, binary.LittleEndian, &resOffset)
-	binary.Read(reader, binary.LittleEndian, &resCount)
+	err = binary.Read(reader, binary.LittleEndian, &resOffset)
+	if err != nil {
+		return fmt.Errorf("Failed to read resOffset in parseRERL: <%w>", err)
+	}
+	err = binary.Read(reader, binary.LittleEndian, &resCount)
+	if err != nil {
+		return fmt.Errorf("Failed to read resCount in parseRERL: <%w>", err)
+	}
 
 	log.Println(block.Offset, resOffset, resCount)
 
@@ -124,7 +154,10 @@ func parseRERL(context *parseContext, block *source2.FileBlock) error {
 		if err != nil {
 			return fmt.Errorf("Failed to read handle in parseRERL: <%w>", err)
 		}
-		binary.Read(reader, binary.LittleEndian, &strOffset)
+		err = binary.Read(reader, binary.LittleEndian, &strOffset)
+		if err != nil {
+			return fmt.Errorf("Failed to read strOffset in parseRERL: <%w>", err)
+		}
 		context.reader.Seek(int64(strOffset-4), io.SeekCurrent)
 		filename, err := readNullString(reader)
 		if err != nil {
@@ -168,8 +201,12 @@ func parseDATA(context *parseContext, block *source2.FileBlock) error {
 	fileBlockDATA := source2.NewFileBlockDATA(block)
 	log.Println(context, block)
 	var magic uint32
+	var err error
 
-	binary.Read(reader, binary.LittleEndian, &magic)
+	err = binary.Read(reader, binary.LittleEndian, &magic)
+	if err != nil {
+		return fmt.Errorf("Failed to read magic in parseDATA: <%w>", err)
+	}
 
 	switch magic {
 	case 0x03564B56: // VKV3
@@ -241,18 +278,37 @@ func parseDataKV3(context *parseContext, block *source2.FileBlock, version int) 
 
 	var compressionMethod, singleByteCount, quadByteCount, eightByteCount uint32
 	var compressionDictionaryId, compressionFrameSize uint16
+	var err error
 	compressedLength := block.Length
 
-	binary.Read(reader, binary.LittleEndian, &compressionMethod)
+	err = binary.Read(reader, binary.LittleEndian, &compressionMethod)
+	if err != nil {
+		return fmt.Errorf("Failed to read compressionMethod in parseDataKV3: <%w>", err)
+	}
 	if (version >= 2) {
-		binary.Read(reader, binary.LittleEndian, &compressionDictionaryId)
-		binary.Read(reader, binary.LittleEndian, &compressionFrameSize)
+		err = binary.Read(reader, binary.LittleEndian, &compressionDictionaryId)
+		if err != nil {
+			return fmt.Errorf("Failed to read compressionDictionaryId in parseDataKV3: <%w>", err)
+		}
+		err = binary.Read(reader, binary.LittleEndian, &compressionFrameSize)
+		if err != nil {
+			return fmt.Errorf("Failed to read compressionFrameSize in parseDataKV3: <%w>", err)
+		}
 		//unknown1 = reader.getUint32();//0 or 0x40000000 depending on compression method
 	}
 
-	binary.Read(reader, binary.LittleEndian, &singleByteCount)
-	binary.Read(reader, binary.LittleEndian, &quadByteCount)
-	binary.Read(reader, binary.LittleEndian, &eightByteCount)
+	err = binary.Read(reader, binary.LittleEndian, &singleByteCount)
+	if err != nil {
+		return fmt.Errorf("Failed to read singleByteCount in parseDataKV3: <%w>", err)
+	}
+	err = binary.Read(reader, binary.LittleEndian, &quadByteCount)
+	if err != nil {
+		return fmt.Errorf("Failed to read quadByteCount in parseDataKV3: <%w>", err)
+	}
+	err = binary.Read(reader, binary.LittleEndian, &eightByteCount)
+	if err != nil {
+		return fmt.Errorf("Failed to read eightByteCount in parseDataKV3: <%w>", err)
+	}
 
 	log.Println(compressionMethod, compressionDictionaryId, compressionFrameSize, singleByteCount, quadByteCount, eightByteCount, compressedLength)
 
