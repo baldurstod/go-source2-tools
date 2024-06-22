@@ -237,12 +237,24 @@ func parseDATAVKV3(context *parseContext, block *source2.FileBlock) error {
 }
 func parseDataKV3(context *parseContext, block *source2.FileBlock, version int) error {
 	reader := context.reader
-	reader.Seek(int64(block.Offset + 4 + 20), io.SeekStart)
+	reader.Seek(int64(block.Offset + 4 + 16), io.SeekStart)
 
-	var compressionMethod uint32
+	var compressionMethod, singleByteCount, quadByteCount, eightByteCount uint32
+	var compressionDictionaryId, compressionFrameSize uint16
+	compressedLength := block.Length
+
 	binary.Read(reader, binary.LittleEndian, &compressionMethod)
+	if (version >= 2) {
+		binary.Read(reader, binary.LittleEndian, &compressionDictionaryId)
+		binary.Read(reader, binary.LittleEndian, &compressionFrameSize)
+		//unknown1 = reader.getUint32();//0 or 0x40000000 depending on compression method
+	}
 
-	log.Println(compressionMethod)
+	binary.Read(reader, binary.LittleEndian, &singleByteCount)
+	binary.Read(reader, binary.LittleEndian, &quadByteCount)
+	binary.Read(reader, binary.LittleEndian, &eightByteCount)
+
+	log.Println(compressionMethod, compressionDictionaryId, compressionFrameSize, singleByteCount, quadByteCount, eightByteCount, compressedLength)
 
 /*
 	format 	 := make([]byte, 16)
