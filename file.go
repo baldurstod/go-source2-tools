@@ -61,3 +61,13 @@ func (fb *FileBlockRERL) AddExternalFile(handle string, filename string) {
 	fb.ExternalFilesByIndex = append(fb.ExternalFilesByIndex, filename)
 	fb.ExternalFilesByHandle[handle] = filename
 }
+
+type FileBlockDATA struct {
+	*FileBlock
+}
+
+func NewFileBlockDATA(fb *FileBlock) *FileBlockDATA {
+	return &FileBlockDATA{
+		FileBlock: fb,
+	}
+}
