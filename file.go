@@ -9,3 +9,19 @@ type File struct {
 func NewFile() *File {
 	return &File{}
 }
+
+type FileBlock struct {
+	*File
+	ResType string
+	Offset  uint32
+	Length  uint32
+}
+
+func NewFileBlock(file *File, ResType string, Offset uint32, Length uint32) *FileBlock {
+	return &FileBlock{
+		File:    file,
+		ResType: ResType,
+		Offset:  Offset,
+		Length:  Length,
+	}
+}

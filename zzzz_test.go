@@ -15,6 +15,6 @@ func Test(t *testing.T) {
 	log.SetFlags(log.LstdFlags | log.Lshortfile)
 
 	b, _ := os.ReadFile(path.Join(varFolder, "pedestal_1.vmdl_c"))
-	file := parser.Parse(bytes.NewReader(b))
+	file, _ := parser.Parse(bytes.NewReader(b))
 	log.Println(file)
 }
