@@ -4,6 +4,7 @@ import (
 	"encoding/binary"
 	"fmt"
 	"github.com/baldurstod/go-source2-tools"
+	"github.com/pierrec/lz4/v4"
 	"io"
 	"log"
 )
@@ -368,12 +369,20 @@ func parseDataKV3(context *parseContext, block *source2.FileBlock, version int) 
 		}
 		log.Println(sa)
 	case 1:
-		sa := make([]byte, decodeLength)
-		_, err := reader.Read(sa)
+		src := make([]byte, compressedLength)
+		dst := make([]byte, decodeLength)
+		_, err := reader.Read(src)
 		if err != nil {
 			return fmt.Errorf("Failed to read datas in parseDataKV3 for compression method 1: <%w>", err)
 		}
-		log.Println(sa)
+
+		size, err := lz4.UncompressBlock(src, dst)
+		if err != nil || uint32(size) != decodeLength {
+			return fmt.Errorf("Failed to decode lz4 in parseDataKV3 for compression method 1: <%w>", err)
+		}
+		//compressedLength
+		//decodeLength
+		log.Println(size, err, dst)
 
 	}
 
