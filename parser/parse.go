@@ -29,6 +29,11 @@ func Parse(r io.ReadSeeker) (*source2.File, error) {
 		return nil, err
 	}
 
+	err = parseBlocks(context)
+	if err != nil {
+		return nil, err
+	}
+
 	log.Println("End parsing file")
 	return context.file, nil
 }
@@ -60,28 +65,25 @@ func parseHeader(context *parseContext) error {
 		binary.Read(reader, binary.LittleEndian, &resOffset)
 		binary.Read(reader, binary.LittleEndian, &resLength)
 
-		res := source2.NewFileBlock(context.file, string(resType), resOffset, resLength)
+		context.file.AddFileBlock(string(resType), resOffset, resLength)
+	}
+	return nil
+}
 
-		log.Println(res, read)
-
-		/*
-			resType = reader.getString(4);
-			resOffset = reader.tell() + reader.getUint32();
-			resLength = reader.getUint32();
-
-			file.maxBlockOffset = Math.max(file.maxBlockOffset, resOffset + resLength);
-
-			block = new Source2FileBlock(file, resType, resOffset, resLength);
-			file.addBlock(block);
-		*/
+func parseBlocks(context *parseContext) error {
+	for _, block := range context.file.FileBlocks {
+		err := parseBlock(context, block)
+		if err != nil {
+			return err
+		}
 	}
 
-	log.Println(headerOffset, resCount)
-	/*
-
-		file.fileLength = reader.getUint32();
-		file.versionMaj = reader.getUint16();
-		file.versionMin = reader.getUint16();*/
 	return nil
+}
 
+func parseBlock(context *parseContext, block *source2.FileBlock) error {
+
+	log.Println(context, block)
+
+	return nil
 }
