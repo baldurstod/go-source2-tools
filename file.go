@@ -1,15 +1,17 @@
 package source2
 
 type File struct {
-	FileLength uint32
-	VersionMaj uint16
-	VersionMin uint16
-	FileBlocks []*FileBlock
+	FileLength  uint32
+	VersionMaj  uint16
+	VersionMin  uint16
+	Blocks      map[string]*FileBlock // Blocks stores the first block of a particular type
+	BlocksArray []*FileBlock
 }
 
 func NewFile() *File {
 	return &File{
-		FileBlocks: make([]*FileBlock, 0),
+		Blocks:      make(map[string]*FileBlock),
+		BlocksArray: make([]*FileBlock, 0),
 	}
 }
 
@@ -20,13 +22,23 @@ type FileBlock struct {
 	Length  uint32
 }
 
-func (f *File) AddFileBlock(ResType string, Offset uint32, Length uint32) {
+func (f *File) AddBlock(resType string, offset uint32, length uint32) {
 	fb := &FileBlock{
 		File:    f,
-		ResType: ResType,
-		Offset:  Offset,
-		Length:  Length,
+		ResType: resType,
+		Offset:  offset,
+		Length:  length,
 	}
 
-	f.FileBlocks = append(f.FileBlocks, fb)
+	_, exist := f.Blocks[resType]
+	// Add the first block of this type to the map
+	if !exist {
+		f.Blocks[resType] = fb
+	}
+
+	f.BlocksArray = append(f.BlocksArray, fb)
+}
+
+func (f *File) GetBlock(resType string) *FileBlock {
+	return f.Blocks[resType]
 }

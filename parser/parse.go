@@ -65,13 +65,13 @@ func parseHeader(context *parseContext) error {
 		binary.Read(reader, binary.LittleEndian, &resOffset)
 		binary.Read(reader, binary.LittleEndian, &resLength)
 
-		context.file.AddFileBlock(string(resType), resOffset, resLength)
+		context.file.AddBlock(string(resType), resOffset, resLength)
 	}
 	return nil
 }
 
 func parseBlocks(context *parseContext) error {
-	for _, block := range context.file.FileBlocks {
+	for _, block := range context.file.BlocksArray {
 		err := parseBlock(context, block)
 		if err != nil {
 			return err
