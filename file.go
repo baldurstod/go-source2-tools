@@ -42,3 +42,22 @@ func (f *File) AddBlock(resType string, offset uint32, length uint32) {
 func (f *File) GetBlock(resType string) *FileBlock {
 	return f.Blocks[resType]
 }
+
+type FileBlockRERL struct {
+	*FileBlock
+	ExternalFilesByIndex  []string
+	ExternalFilesByHandle map[string]string
+}
+
+func NewFileBlockRERL(fb *FileBlock) *FileBlockRERL {
+	return &FileBlockRERL{
+		FileBlock:             fb,
+		ExternalFilesByIndex:  make([]string, 0),
+		ExternalFilesByHandle: make(map[string]string),
+	}
+}
+
+func (fb *FileBlockRERL) AddExternalFile(handle string, filename string) {
+	fb.ExternalFilesByIndex = append(fb.ExternalFilesByIndex, filename)
+	fb.ExternalFilesByHandle[handle] = filename
+}

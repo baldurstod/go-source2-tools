@@ -15,6 +15,12 @@ func Test(t *testing.T) {
 	log.SetFlags(log.LstdFlags | log.Lshortfile)
 
 	b, _ := os.ReadFile(path.Join(varFolder, "pedestal_1.vmdl_c"))
-	file, _ := parser.Parse(bytes.NewReader(b))
-	log.Println(file)
+	file, err := parser.Parse(bytes.NewReader(b))
+	if err != nil {
+		log.Println(err)
+	} else {
+		log.Println(file)
+		log.Println(file.GetBlock("AGRP"))
+	}
+
 }
