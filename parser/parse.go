@@ -211,15 +211,15 @@ func parseDATA(context *parseContext, block *source2.FileBlock) error {
 
 	switch magic {
 	case 0x03564B56: // VKV3
-		return parseDATAVKV3(context, block)
+		return parseDATAVKV3(context, fileBlockDATA)
 	case 0x4B563301: // kv31
-		return parseDataKV3(context, block, 1)
+		return parseDataKV3(context, fileBlockDATA, 1)
 	case 0x4B563302: // kv32 ?? new since wind ranger arcana
-		return parseDataKV3(context, block, 2)
+		return parseDataKV3(context, fileBlockDATA, 2)
 	case 0x4B563303: // KV3 v3 new since muerta
-		return parseDataKV3(context, block, 3)
+		return parseDataKV3(context, fileBlockDATA, 3)
 	case 0x4B563304: // KV3 v4 new since dota 7.33
-		return parseDataKV3(context, block, 4)
+		return parseDataKV3(context, fileBlockDATA, 4)
 	default:
 		log.Println("Unknown magic in parseDATA:", magic)
 		/*	if (TESTING) {
@@ -270,10 +270,10 @@ func parseDATA(context *parseContext, block *source2.FileBlock) error {
 	*/
 }
 
-func parseDATAVKV3(context *parseContext, block *source2.FileBlock) error {
+func parseDATAVKV3(context *parseContext, block *source2.FileBlockDATA) error {
 	return nil
 }
-func parseDataKV3(context *parseContext, block *source2.FileBlock, version int) error {
+func parseDataKV3(context *parseContext, block *source2.FileBlockDATA, version int) error {
 	reader := context.reader
 	reader.Seek(int64(block.Offset+4+16), io.SeekStart)
 
@@ -387,7 +387,6 @@ func parseDataKV3(context *parseContext, block *source2.FileBlock, version int) 
 		return fmt.Errorf("Unknow compression method in parseDataKV3: %d", compressionMethod)
 	}
 
-
 	log.Println(compressionMethod, compressionDictionaryId, compressionFrameSize, singleByteCount, quadByteCount, eightByteCount, compressedLength)
 	log.Println(dictionaryTypeLength, unknown3, unknown4, decodeLength)
 	log.Println(compressedLength, blobCount, totalUncompressedBlobSize)
@@ -444,6 +443,7 @@ func parseDataKV3(context *parseContext, block *source2.FileBlock, version int) 
 			block.keyValue = BinaryKv3Loader.getBinaryKv3(version, sa, singleByteCount, quadByteCount, eightByteCount, dictionaryTypeLength, blobCount, totalUncompressedBlobSize, compressedBlobReader, uncompressedBlobReader, compressionFrameSize);
 		}
 	*/
+
 	return nil
 }
 
