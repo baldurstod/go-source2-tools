@@ -1,6 +1,7 @@
 package parser
 
 import (
+	"bytes"
 	"encoding/binary"
 	"fmt"
 	"github.com/baldurstod/go-source2-tools"
@@ -144,7 +145,8 @@ func parseRERL(context *parseContext, block *source2.FileBlock) error {
 
 	log.Println(block.Offset, resOffset, resCount)
 
-	fileBlockRERL := source2.NewFileBlockRERL(block)
+	fileBlockRERL := source2.NewFileBlockRERL()
+	block.Data = fileBlockRERL
 
 	handle := make([]byte, 8)
 	for i := uint32(0); i < resCount; i++ {
@@ -199,7 +201,8 @@ func parseRERL(context *parseContext, block *source2.FileBlock) error {
 func parseDATA(context *parseContext, block *source2.FileBlock) error {
 	reader := context.reader
 	reader.Seek(int64(block.Offset), io.SeekStart)
-	fileBlockDATA := source2.NewFileBlockDATA(block)
+	fileBlockDATA := source2.NewFileBlockDATA()
+	block.Data = fileBlockDATA
 	log.Println(context, block)
 	var magic uint32
 	var err error
@@ -211,15 +214,15 @@ func parseDATA(context *parseContext, block *source2.FileBlock) error {
 
 	switch magic {
 	case 0x03564B56: // VKV3
-		return parseDATAVKV3(context, fileBlockDATA)
+		return parseDATAVKV3(context, block)
 	case 0x4B563301: // kv31
-		return parseDataKV3(context, fileBlockDATA, 1)
+		return parseDataKV3(context, block, 1)
 	case 0x4B563302: // kv32 ?? new since wind ranger arcana
-		return parseDataKV3(context, fileBlockDATA, 2)
+		return parseDataKV3(context, block, 2)
 	case 0x4B563303: // KV3 v3 new since muerta
-		return parseDataKV3(context, fileBlockDATA, 3)
+		return parseDataKV3(context, block, 3)
 	case 0x4B563304: // KV3 v4 new since dota 7.33
-		return parseDataKV3(context, fileBlockDATA, 4)
+		return parseDataKV3(context, block, 4)
 	default:
 		log.Println("Unknown magic in parseDATA:", magic)
 		/*	if (TESTING) {
@@ -270,10 +273,10 @@ func parseDATA(context *parseContext, block *source2.FileBlock) error {
 	*/
 }
 
-func parseDATAVKV3(context *parseContext, block *source2.FileBlockDATA) error {
+func parseDATAVKV3(context *parseContext, block *source2.FileBlock) error {
 	return nil
 }
-func parseDataKV3(context *parseContext, block *source2.FileBlockDATA, version int) error {
+func parseDataKV3(context *parseContext, block *source2.FileBlock, version int) error {
 	reader := context.reader
 	reader.Seek(int64(block.Offset+4+16), io.SeekStart)
 
@@ -360,6 +363,8 @@ func parseDataKV3(context *parseContext, block *source2.FileBlockDATA, version i
 		}
 	}
 
+	var dst []byte
+
 	switch compressionMethod {
 	case 0:
 		sa := make([]byte, decodeLength)
@@ -370,7 +375,7 @@ func parseDataKV3(context *parseContext, block *source2.FileBlockDATA, version i
 		log.Println(sa)
 	case 1:
 		src := make([]byte, compressedLength)
-		dst := make([]byte, decodeLength)
+		dst = make([]byte, decodeLength)
 		_, err := reader.Read(src)
 		if err != nil {
 			return fmt.Errorf("Failed to read datas in parseDataKV3 for compression method %d: <%w>", compressionMethod, err)
@@ -386,6 +391,12 @@ func parseDataKV3(context *parseContext, block *source2.FileBlockDATA, version i
 	default:
 		return fmt.Errorf("Unknow compression method in parseDataKV3: %d", compressionMethod)
 	}
+
+	kv, err := ParseKv3(bytes.NewReader(dst))
+	if err != nil {
+		return fmt.Errorf("Failed to parse kv3 in parseDataKV3: <%w>", err)
+	}
+	block.Data.(*source2.FileBlockDATA).KeyValue = kv
 
 	log.Println(compressionMethod, compressionDictionaryId, compressionFrameSize, singleByteCount, quadByteCount, eightByteCount, compressedLength)
 	log.Println(dictionaryTypeLength, unknown3, unknown4, decodeLength)

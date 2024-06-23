@@ -1,5 +1,9 @@
 package source2
 
+import (
+	"github.com/baldurstod/go-source2-tools/kv3"
+)
+
 type File struct {
 	FileLength  uint32
 	VersionMaj  uint16
@@ -20,6 +24,7 @@ type FileBlock struct {
 	ResType string
 	Offset  uint32
 	Length  uint32
+	Data any
 }
 
 func (f *File) AddBlock(resType string, offset uint32, length uint32) {
@@ -44,14 +49,12 @@ func (f *File) GetBlock(resType string) *FileBlock {
 }
 
 type FileBlockRERL struct {
-	*FileBlock
 	ExternalFilesByIndex  []string
 	ExternalFilesByHandle map[string]string
 }
 
-func NewFileBlockRERL(fb *FileBlock) *FileBlockRERL {
+func NewFileBlockRERL() *FileBlockRERL {
 	return &FileBlockRERL{
-		FileBlock:             fb,
 		ExternalFilesByIndex:  make([]string, 0),
 		ExternalFilesByHandle: make(map[string]string),
 	}
@@ -63,11 +66,10 @@ func (fb *FileBlockRERL) AddExternalFile(handle string, filename string) {
 }
 
 type FileBlockDATA struct {
-	*FileBlock
+	KeyValue *kv3.Kv3Element
 }
 
-func NewFileBlockDATA(fb *FileBlock) *FileBlockDATA {
+func NewFileBlockDATA() *FileBlockDATA {
 	return &FileBlockDATA{
-		FileBlock: fb,
 	}
 }
