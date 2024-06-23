@@ -33,6 +33,8 @@ func ParseKv3(b []byte, version int, singleByteCount uint32, quadByteCount uint3
 	eightCursor := math.Ceil((quadCursor+float64(quadByteCount)*4)/8) * 8
 	dictionaryOffset := uint32(eightCursor) + eightByteCount*8
 	blobOffset := dictionaryOffset + dictionaryTypeLength
+	blobEnd := uint32(len(b) - 4)
+
 	if version >= 2 && blobCount != 0 {
 		if compressedBlobReader != nil {
 			uncompressedLength := blobCount * 4
@@ -47,20 +49,37 @@ func ParseKv3(b []byte, version int, singleByteCount uint32, quadByteCount uint3
 		} else {
 			if uncompressedBlobReader != nil {
 				//uncompressedBlobSizeReader = new BinaryReader(reader, reader.byteLength - blobCount * 4 - 4, blobCount * 4);
+				uncompressedBlobSizeReader := bytes.NewReader(b[blobEnd-blobCount*4 : blobEnd])
+				log.Println(uncompressedBlobSizeReader)
 			}
 		}
 	}
-	/*
-		err := parseHeader(context)
-		if err != nil {
-			return nil, err
-		}
 
-		err = parseBlocks(context)
-		if err != nil {
-			return nil, err
+	var offset uint32
+	if version == 1 {
+		offset = blobEnd
+	} else if version >= 2 {
+		offset = blobOffset
+	}
+
+	// First compute the size
+	size := 0
+	s := offset
+	for {
+		s--
+		if s <= 0 {
+			break
 		}
-	*/
-	log.Println("End parsing kv3")
+		if b[s] != 0 {
+			size++
+		} else {
+			break
+		}
+	}
+
+	typeArray := b[s+1 : offset]
+	//let valueArray = [];
+
+	log.Println("End parsing kv3", size, typeArray)
 	return context.root, nil
 }
