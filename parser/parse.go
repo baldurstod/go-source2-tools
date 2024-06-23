@@ -365,7 +365,7 @@ func parseDataKV3(context *parseContext, block *source2.FileBlock, version int) 
 		sa := make([]byte, decodeLength)
 		_, err := reader.Read(sa)
 		if err != nil {
-			return fmt.Errorf("Failed to read datas in parseDataKV3 for compression method 0: <%w>", err)
+			return fmt.Errorf("Failed to read datas in parseDataKV3 for compression method %d: <%w>", compressionMethod, err)
 		}
 		log.Println(sa)
 	case 1:
@@ -373,18 +373,20 @@ func parseDataKV3(context *parseContext, block *source2.FileBlock, version int) 
 		dst := make([]byte, decodeLength)
 		_, err := reader.Read(src)
 		if err != nil {
-			return fmt.Errorf("Failed to read datas in parseDataKV3 for compression method 1: <%w>", err)
+			return fmt.Errorf("Failed to read datas in parseDataKV3 for compression method %d: <%w>", compressionMethod, err)
 		}
 
 		size, err := lz4.UncompressBlock(src, dst)
 		if err != nil || uint32(size) != decodeLength {
-			return fmt.Errorf("Failed to decode lz4 in parseDataKV3 for compression method 1: <%w>", err)
+			return fmt.Errorf("Failed to decode lz4 in parseDataKV3 for compression method %d: <%w>", compressionMethod, err)
 		}
 		//compressedLength
 		//decodeLength
 		log.Println(size, err, dst)
-
+	default:
+		return fmt.Errorf("Unknow compression method in parseDataKV3: %d", compressionMethod)
 	}
+
 
 	log.Println(compressionMethod, compressionDictionaryId, compressionFrameSize, singleByteCount, quadByteCount, eightByteCount, compressedLength)
 	log.Println(dictionaryTypeLength, unknown3, unknown4, decodeLength)
