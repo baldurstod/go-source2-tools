@@ -13,17 +13,19 @@ import (
 type parseContext struct {
 	reader io.ReadSeeker
 	file   *source2.File
+	b      []byte
 }
 
-func newParseContext(reader io.ReadSeeker) *parseContext {
+func newParseContext(b []byte) *parseContext {
 	return &parseContext{
-		reader: reader,
+		reader: bytes.NewReader(b),
 		file:   source2.NewFile(),
+		b:      b,
 	}
 }
 
-func Parse(r io.ReadSeeker) (*source2.File, error) {
-	context := newParseContext(r)
+func Parse(b []byte) (*source2.File, error) {
+	context := newParseContext(b)
 
 	log.Println("Start parsing file")
 	err := parseHeader(context)
@@ -109,7 +111,7 @@ func parseBlocks(context *parseContext) error {
 
 func parseBlock(context *parseContext, block *source2.FileBlock) error {
 
-	log.Println(context, block)
+	log.Println(block)
 
 	var err error
 	switch block.ResType {
@@ -203,7 +205,7 @@ func parseDATA(context *parseContext, block *source2.FileBlock) error {
 	reader.Seek(int64(block.Offset), io.SeekStart)
 	fileBlockDATA := source2.NewFileBlockDATA()
 	block.Data = fileBlockDATA
-	log.Println(context, block)
+	log.Println(block)
 	var magic uint32
 	var err error
 
@@ -365,6 +367,8 @@ func parseDataKV3(context *parseContext, block *source2.FileBlock, version int) 
 
 	var dst []byte
 
+	var compressedBlobReader, uncompressedBlobReader io.ReadSeeker
+
 	switch compressionMethod {
 	case 0:
 		sa := make([]byte, decodeLength)
@@ -374,6 +378,11 @@ func parseDataKV3(context *parseContext, block *source2.FileBlock, version int) 
 		}
 		log.Println(sa)
 	case 1:
+		if blobCount > 0 {
+			currentPos, _ := context.reader.Seek(0, io.SeekCurrent)
+			compressedBlobReader = bytes.NewReader(context.b[uint32(currentPos)+compressedLength:])
+			//compressedBlobReader = new BinaryReader(reader, reader.tell() + compressedLength);
+		}
 		src := make([]byte, compressedLength)
 		dst = make([]byte, decodeLength)
 		_, err := reader.Read(src)
@@ -387,12 +396,12 @@ func parseDataKV3(context *parseContext, block *source2.FileBlock, version int) 
 		}
 		//compressedLength
 		//decodeLength
-		log.Println(size, err, dst)
+		//log.Println(size, err, dst)
 	default:
 		return fmt.Errorf("Unknow compression method in parseDataKV3: %d", compressionMethod)
 	}
 
-	kv, err := ParseKv3(bytes.NewReader(dst))
+	kv, err := ParseKv3(dst, version, singleByteCount, quadByteCount, eightByteCount, dictionaryTypeLength, blobCount, totalUncompressedBlobSize, compressedBlobReader, uncompressedBlobReader, compressionFrameSize)
 	if err != nil {
 		return fmt.Errorf("Failed to parse kv3 in parseDataKV3: <%w>", err)
 	}

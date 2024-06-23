@@ -24,7 +24,7 @@ type FileBlock struct {
 	ResType string
 	Offset  uint32
 	Length  uint32
-	Data any
+	Data    any
 }
 
 func (f *File) AddBlock(resType string, offset uint32, length uint32) {
@@ -70,6 +70,5 @@ type FileBlockDATA struct {
 }
 
 func NewFileBlockDATA() *FileBlockDATA {
-	return &FileBlockDATA{
-	}
+	return &FileBlockDATA{}
 }
