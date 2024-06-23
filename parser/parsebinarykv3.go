@@ -2,8 +2,8 @@ package parser
 
 import (
 	"bytes"
-	_ "encoding/binary"
-	_ "fmt"
+	"encoding/binary"
+	"fmt"
 	"github.com/baldurstod/go-source2-tools/kv3"
 	"io"
 	"log"
@@ -14,6 +14,7 @@ type parseKv3Context struct {
 	reader           io.ReadSeeker
 	root             *kv3.Kv3Element
 	stringDictionary []string
+	decompressOffset int
 }
 
 func newParseKv3Context(reader io.ReadSeeker) *parseKv3Context {
@@ -31,25 +32,24 @@ func ParseKv3(b []byte, version int, singleByteCount uint32, quadByteCount uint3
 
 	quadCursor := math.Ceil(float64(singleByteCount)/4) * 4
 	eightCursor := math.Ceil((quadCursor+float64(quadByteCount)*4)/8) * 8
+
 	dictionaryOffset := uint32(eightCursor) + eightByteCount*8
 	blobOffset := dictionaryOffset + dictionaryTypeLength
 	blobEnd := uint32(len(b) - 4)
 
+	var uncompressedBlobSizeReader, compressedBlobSizeReader io.ReadSeeker
 	if version >= 2 && blobCount != 0 {
 		if compressedBlobReader != nil {
 			uncompressedLength := blobCount * 4
 			compressedEnd := blobOffset + uncompressedLength
-			uncompressedBlobSizeReader := bytes.NewReader(b[blobOffset : blobOffset+uncompressedLength])
-			compressedBlobSizeReader := bytes.NewReader(b[compressedEnd+4 : compressedEnd+4+blobCount*2])
-			//uncompressedBlobSizeReader = new BinaryReader(reader, blobOffset, uncompressedLength);
-			//compressedBlobSizeReader = new BinaryReader(reader, blobOffset + 4 + uncompressedLength, blobCount * 2);
+			uncompressedBlobSizeReader = bytes.NewReader(b[blobOffset : blobOffset+uncompressedLength])
+			compressedBlobSizeReader = bytes.NewReader(b[compressedEnd+4 : compressedEnd+4+blobCount*2])
 
 			log.Println(uncompressedBlobSizeReader, compressedBlobSizeReader)
 
 		} else {
 			if uncompressedBlobReader != nil {
-				//uncompressedBlobSizeReader = new BinaryReader(reader, reader.byteLength - blobCount * 4 - 4, blobCount * 4);
-				uncompressedBlobSizeReader := bytes.NewReader(b[blobEnd-blobCount*4 : blobEnd])
+				uncompressedBlobSizeReader = bytes.NewReader(b[blobEnd-blobCount*4 : blobEnd])
 				log.Println(uncompressedBlobSizeReader)
 			}
 		}
@@ -78,8 +78,53 @@ func ParseKv3(b []byte, version int, singleByteCount uint32, quadByteCount uint3
 	}
 
 	typeArray := b[s+1 : offset]
+	valueArray := make([]any, s)
 	//let valueArray = [];
+	//byteReader := bytes.NewReader(b)
+	quadReader := bytes.NewReader(b)
+	eightReader := bytes.NewReader(b)
 
-	log.Println("End parsing kv3", size, typeArray)
+	quadReader.Seek(int64(quadCursor), io.SeekStart)
+	eightReader.Seek(int64(eightCursor), io.SeekStart)
+
+	var stringCount uint32
+	err := binary.Read(quadReader, binary.LittleEndian, &stringCount)
+	if err != nil {
+		return nil, fmt.Errorf("Failed to read stringCount in ParseKv3: <%w>", err)
+	}
+
+	context.reader.Seek(int64(dictionaryOffset), io.SeekStart)
+	stringDictionary := make([]string, stringCount)
+	readStringDictionary(context, stringDictionary, stringCount)
+
+	var decompressBlobBuffer []byte
+	//let decompressBlobArray;
+
+	if compressedBlobReader != nil { //if a compressed reader is provided, we have to uncompress the blobs
+		decompressBlobBuffer = make([]byte, totalUncompressedBlobSize) //new ArrayBuffer(totalUncompressedBlobSize);
+		/*decompressBlobArray = new Uint8Array(decompressBlobBuffer);
+		decompressBlobArray.decompressOffset = 0;*/
+		context.decompressOffset = 0
+	}
+
+	rootElement := parseBinaryKv3Element(context, quadReader, eightReader, uncompressedBlobSizeReader, compressedBlobSizeReader, blobCount, decompressBlobBuffer, nil, compressedBlobReader, uncompressedBlobReader, typeArray, valueArray, -1, false, compressionFrameSize)
+
+	log.Println("End parsing kv3", size, typeArray, stringCount, rootElement)
 	return context.root, nil
+}
+
+func readStringDictionary(context *parseKv3Context, stringDictionary []string, stringCount uint32) error {
+	for i := uint32(0); i < stringCount; i++ {
+		s, err := readNullString(context.reader)
+		if err != nil {
+			return fmt.Errorf("Failed to read string in readStringDictionary: <%w>", err)
+		}
+		stringDictionary = append(stringDictionary, s)
+	}
+	return nil
+}
+
+func parseBinaryKv3Element(context *parseKv3Context, quadReader *bytes.Reader, eightReader *bytes.Reader, uncompressedBlobSizeReader io.ReadSeeker, compressedBlobSizeReader io.ReadSeeker, blobCount uint32,
+	decompressBlobBuffer []byte, decompressBlobArray any, compressedBlobReader io.ReadSeeker, uncompressedBlobReader io.ReadSeeker, typeArray []byte, valueArray []any, elementType int, isArray bool, compressionFrameSize uint16) error {
+	return nil
 }
