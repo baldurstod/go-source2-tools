@@ -110,9 +110,6 @@ func parseBlocks(context *parseContext) error {
 }
 
 func parseBlock(context *parseContext, block *source2.FileBlock) error {
-
-	log.Println(block)
-
 	var err error
 	switch block.ResType {
 	case "RERL":
@@ -407,9 +404,9 @@ func parseDataKV3(context *parseContext, block *source2.FileBlock, version int) 
 	}
 	block.Data.(*source2.FileBlockDATA).KeyValue = kv
 
-	log.Println(compressionMethod, compressionDictionaryId, compressionFrameSize, singleByteCount, quadByteCount, eightByteCount, compressedLength)
-	log.Println(dictionaryTypeLength, unknown3, unknown4, decodeLength)
-	log.Println(compressedLength, blobCount, totalUncompressedBlobSize)
+	//log.Println(compressionMethod, compressionDictionaryId, compressionFrameSize, singleByteCount, quadByteCount, eightByteCount, compressedLength)
+	//log.Println(dictionaryTypeLength, unknown3, unknown4, decodeLength)
+	//log.Println(compressedLength, blobCount, totalUncompressedBlobSize)
 
 	/*
 		async function loadDataKv3(reader, block, version) {
@@ -484,6 +481,5 @@ func readNullString(r io.ReadSeeker) (string, error) {
 		}
 	}
 
-	log.Println(s)
 	return s, nil
 }
