@@ -77,8 +77,8 @@ func ParseKv3(b []byte, version int, singleByteCount uint32, quadByteCount uint3
 		}
 	}
 
-	typeArray := b[s+1 : offset]
-	valueArray := make([]any, s)
+	typeReader := bytes.NewReader(b[s+1 : offset])
+	valueArray := make([]kv3.Kv3Value, s)
 	//let valueArray = [];
 	//byteReader := bytes.NewReader(b)
 	quadReader := bytes.NewReader(b)
@@ -107,9 +107,18 @@ func ParseKv3(b []byte, version int, singleByteCount uint32, quadByteCount uint3
 		context.decompressOffset = 0
 	}
 
-	rootElement := parseBinaryKv3Element(context, quadReader, eightReader, uncompressedBlobSizeReader, compressedBlobSizeReader, blobCount, decompressBlobBuffer, nil, compressedBlobReader, uncompressedBlobReader, typeArray, valueArray, -1, false, compressionFrameSize)
+	var elementType byte
+	err = binary.Read(quadReader, binary.LittleEndian, &elementType)
+	if err != nil {
+		return nil, fmt.Errorf("Failed to read elementType in ParseKv3: <%w>", err)
+	}
 
-	log.Println("End parsing kv3", size, typeArray, stringCount, rootElement)
+	rootElement, err := parseBinaryKv3Element(context, quadReader, eightReader, uncompressedBlobSizeReader, compressedBlobSizeReader, blobCount, decompressBlobBuffer, nil, compressedBlobReader, uncompressedBlobReader, typeReader, valueArray, elementType, false, compressionFrameSize)
+	if err != nil {
+		return nil, fmt.Errorf("Call to parseBinaryKv3Element returned an error in ParseKv3: <%w>", err)
+	}
+
+	log.Println("End parsing kv3", size, stringCount, rootElement)
 	return context.root, nil
 }
 
@@ -125,6 +134,115 @@ func readStringDictionary(context *parseKv3Context, stringDictionary []string, s
 }
 
 func parseBinaryKv3Element(context *parseKv3Context, quadReader *bytes.Reader, eightReader *bytes.Reader, uncompressedBlobSizeReader io.ReadSeeker, compressedBlobSizeReader io.ReadSeeker, blobCount uint32,
-	decompressBlobBuffer []byte, decompressBlobArray any, compressedBlobReader io.ReadSeeker, uncompressedBlobReader io.ReadSeeker, typeArray []byte, valueArray []any, elementType int, isArray bool, compressionFrameSize uint16) error {
-	return nil
+	decompressBlobBuffer []byte, decompressBlobArray any, compressedBlobReader io.ReadSeeker, uncompressedBlobReader io.ReadSeeker, typeReader io.Reader, valueArray []kv3.Kv3Value, elementType byte, isArray bool, compressionFrameSize uint16) (kv3.Kv3Value, error) {
+
+	switch elementType {
+	case kv3.DATA_TYPE_NULL:
+		return nil, nil
+	case kv3.DATA_TYPE_BOOL:
+		var b uint8
+		err := binary.Read(context.reader, binary.LittleEndian, &b)
+		if err != nil {
+			return nil, fmt.Errorf("Failed to read value of type %d in parseBinaryKv3Element: <%w>", elementType, err)
+		}
+		if isArray {
+			//return byteReader.getUint8() ? true : false;
+			if b > 0 {
+				return true, nil
+			} else {
+				return false, nil
+			}
+		} else {
+			valueArray = append(valueArray, b)
+			/*
+				let value = new SourceKv3Value(elementType);
+				valueArray.push(value);
+				value.value = byteReader.getUint8() ? true : false;
+				return value;*/
+			return nil, nil
+		}
+	case kv3.DATA_TYPE_INT64:
+		var value int64
+		err := binary.Read(eightReader, binary.LittleEndian, &value)
+		if err != nil {
+			return nil, fmt.Errorf("Failed to read value of type %d in parseBinaryKv3Element: <%w>", elementType, err)
+		}
+		if isArray {
+			return value, nil
+		} else {
+			valueArray = append(valueArray, value)
+			return nil, nil
+		}
+	case kv3.DATA_TYPE_UINT64:
+		var value uint64
+		err := binary.Read(eightReader, binary.LittleEndian, &value)
+		if err != nil {
+			return nil, fmt.Errorf("Failed to read value of type %d in parseBinaryKv3Element: <%w>", elementType, err)
+		}
+		if isArray {
+			return value, nil
+		} else {
+			valueArray = append(valueArray, value)
+			return nil, nil
+		}
+	case kv3.DATA_TYPE_DOUBLE:
+		var value float64
+		err := binary.Read(eightReader, binary.LittleEndian, &value)
+		if err != nil {
+			return nil, fmt.Errorf("Failed to read value of type %d in parseBinaryKv3Element: <%w>", elementType, err)
+		}
+		if isArray {
+			return value, nil
+		} else {
+			valueArray = append(valueArray, value)
+			return nil, nil
+		}
+	case kv3.DATA_TYPE_BYTE:
+		var value int8
+		err := binary.Read(context.reader, binary.LittleEndian, &value)
+		if err != nil {
+			return nil, fmt.Errorf("Failed to read value of type %d in parseBinaryKv3Element: <%w>", elementType, err)
+		}
+		if isArray {
+			return value, nil
+		} else {
+			valueArray = append(valueArray, value)
+			return nil, nil
+		}
+	case kv3.DATA_TYPE_STRING:
+		var value int32
+		err := binary.Read(context.reader, binary.LittleEndian, &value)
+		if err != nil {
+			return nil, fmt.Errorf("Failed to read value of type %d in parseBinaryKv3Element: <%w>", elementType, err)
+		}
+		return value, nil
+	default:
+		return nil, fmt.Errorf("Unknown elementType %d in parseBinaryKv3Element", elementType)
+	}
 }
+
+/*
+
+	DATA_TYPE_NULL         = 0x01
+	DATA_TYPE_BOOL         = 0x02
+	DATA_TYPE_INT64        = 0x03
+	DATA_TYPE_UINT64       = 0x04
+	DATA_TYPE_DOUBLE       = 0x05
+	DATA_TYPE_STRING       = 0x06
+	DATA_TYPE_BLOB         = 0x07
+	DATA_TYPE_ARRAY        = 0x08
+	DATA_TYPE_OBJECT       = 0x09
+	DATA_TYPE_TYPED_ARRAY  = 0x0A
+	DATA_TYPE_INT32        = 0x0B
+	DATA_TYPE_UINT32       = 0x0C
+	DATA_TYPE_TRUE         = 0x0D
+	DATA_TYPE_FALSE        = 0x0E
+	DATA_TYPE_INT_ZERO     = 0x0F
+	DATA_TYPE_INT_ONE      = 0x10
+	DATA_TYPE_DOUBLE_ZERO  = 0x11
+	DATA_TYPE_DOUBLE_ONE   = 0x12
+	DATA_TYPE_FLOAT        = 0x13
+	DATA_TYPE_BYTE         = 0x17
+	DATA_TYPE_TYPED_ARRAY2 = 0x18
+	DATA_TYPE_RESOURCE     = 0x86
+*/
