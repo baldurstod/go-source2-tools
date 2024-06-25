@@ -81,7 +81,6 @@ func ParseKv3(b []byte, version int, singleByteCount uint32, quadByteCount uint3
 
 	typeReader := bytes.NewReader(b[s+1 : offset])
 	valueArray := make([]kv3.Kv3Value, s)
-	log.Println("typeReader", typeReader)
 	//let valueArray = [];
 	//byteReader := bytes.NewReader(b)
 	quadReader := bytes.NewReader(b)
@@ -137,8 +136,6 @@ func readStringDictionary(context *parseKv3Context, stringDictionary []string, s
 
 func parseBinaryKv3Element(context *parseKv3Context, quadReader *bytes.Reader, eightReader *bytes.Reader, uncompressedBlobSizeReader io.ReadSeeker, compressedBlobSizeReader io.ReadSeeker, blobCount uint32,
 	decompressBlobBuffer []byte, decompressBlobArray any, compressedBlobReader io.ReadSeeker, uncompressedBlobReader io.ReadSeeker, typeReader io.ReadSeeker, valueArray []kv3.Kv3Value, elementType byte, isArray bool, compressionFrameSize uint16) (kv3.Kv3Value, error) {
-	log.Println("Start parsing parseBinaryKv3Element", blobCount, elementType)
-	defer log.Println("End parsing parseBinaryKv3Element")
 
 	switch elementType {
 	case kv3.DATA_TYPE_NULL:
@@ -220,7 +217,6 @@ func parseBinaryKv3Element(context *parseKv3Context, quadReader *bytes.Reader, e
 			return nil, fmt.Errorf("failed to read value of type %d in parseBinaryKv3Element: <%w>", elementType, err)
 		}
 
-		log.Println("String id is", value)
 		return value, nil
 	case kv3.DATA_TYPE_BLOB:
 		if blobCount == 0 {
@@ -325,7 +321,6 @@ func parseBinaryKv3Element(context *parseKv3Context, quadReader *bytes.Reader, e
 		if err != nil {
 			return nil, fmt.Errorf("failed to read count in parseBinaryKv3Element: <%w>", err)
 		}
-		log.Println("Count for DATA_TYPE_ARRAY is", count)
 
 		elements := make([]kv3.Kv3Value, count)
 		/*for (let i = 0; i < count; i++) {
@@ -349,8 +344,6 @@ func parseBinaryKv3Element(context *parseKv3Context, quadReader *bytes.Reader, e
 			return nil, fmt.Errorf("failed to read count in parseBinaryKv3Element: <%w>", err)
 		}
 
-		log.Println("Count for DATA_TYPE_OBJECT is", count)
-
 		//elements = new Kv3Element();
 		elements := make(map[uint32]kv3.Kv3Value)
 		for i := uint32(0); i < count; i++ {
@@ -360,7 +353,6 @@ func parseBinaryKv3Element(context *parseKv3Context, quadReader *bytes.Reader, e
 			if err != nil {
 				return nil, fmt.Errorf("failed to read nameId in parseBinaryKv3Element: <%w>", err)
 			}
-			log.Println("nameId is", nameId)
 
 			elementType, err := readElementType(typeReader)
 			if err != nil {
@@ -395,13 +387,10 @@ func parseBinaryKv3Element(context *parseKv3Context, quadReader *bytes.Reader, e
 			return nil, fmt.Errorf("failed to read count in parseBinaryKv3Element: <%w>", err)
 		}
 
-		log.Println("Count for DATA_TYPE_TYPED_ARRAY is", count)
-
 		subType, err := readElementType(typeReader)
 		if err != nil {
 			return nil, fmt.Errorf("failed to read elementType, type %d in parseBinaryKv3Element: <%w>", elementType, err)
 		}
-		log.Println("subType for DATA_TYPE_TYPED_ARRAY is", subType)
 
 		elements := make([]kv3.Kv3Value, count)
 		for i := uint32(0); i < count; i++ {
