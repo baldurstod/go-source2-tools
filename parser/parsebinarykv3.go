@@ -4,17 +4,19 @@ import (
 	"bytes"
 	"encoding/binary"
 	"fmt"
-	"github.com/baldurstod/go-source2-tools/kv3"
 	"io"
 	"log"
 	"math"
+
+	"github.com/baldurstod/go-source2-tools/kv3"
+	"github.com/pierrec/lz4/v4"
 )
 
 type parseKv3Context struct {
 	reader           io.ReadSeeker
 	root             *kv3.Kv3Element
 	stringDictionary []string
-	decompressOffset int
+	decompressOffset uint32
 }
 
 func newParseKv3Context(reader io.ReadSeeker) *parseKv3Context {
@@ -105,7 +107,7 @@ func ParseKv3(b []byte, version int, singleByteCount uint32, quadByteCount uint3
 		decompressBlobBuffer = make([]byte, totalUncompressedBlobSize) //new ArrayBuffer(totalUncompressedBlobSize);
 		/*decompressBlobArray = new Uint8Array(decompressBlobBuffer);
 		decompressBlobArray.decompressOffset = 0;*/
-		context.decompressOffset = 0
+		context.decompressOffset = uint32(0)
 	}
 
 	elementType, err := readElementType(typeReader)
@@ -248,28 +250,63 @@ func parseBinaryKv3Element(context *parseKv3Context, quadReader *bytes.Reader, e
 			//return elements
 			return nil, nil
 		} else {
-			panic("code me")
-			/*
-				if (compressedBlobReader) {//if we have a decompress buffer, that means we have to decompress the blobs
-					let uncompressedBlobSize = uncompressedBlobSizeReader.getUint32();
-					let compressedBlobSize = compressedBlobSizeReader.getUint16();
+			if compressedBlobReader != nil { //if we have a decompress buffer, that means we have to decompress the blobs
+				var uncompressedBlobSize uint32
+				var compressedBlobSize uint16
 
-					//let decompressBuffer = new ArrayBuffer(uncompressedBlobSize);
-					var decompressArray = new Uint8Array(decompressBlobBuffer, decompressBlobArray.decompressOffset, uncompressedBlobSize);
+				err := binary.Read(uncompressedBlobSizeReader, binary.LittleEndian, &uncompressedBlobSize)
+				if err != nil {
+					return nil, fmt.Errorf("Failed to read uncompressedBlobSize in parseBinaryKv3Element: <%w>", err)
+				}
 
-					while (true) {
-						if (uncompressedBlobSize > compressionFrameSize) {
-							const uncompressedFrameSize = decodeLz4(compressedBlobReader, decompressBlobArray, compressedBlobSize, compressionFrameSize, decompressBlobArray.decompressOffset);
-							decompressBlobArray.decompressOffset += uncompressedFrameSize;
-							uncompressedBlobSize -= uncompressedFrameSize;
-						} else {
-							uncompressedBlobSize = decodeLz4(compressedBlobReader, decompressBlobArray, compressedBlobSize, uncompressedBlobSize, decompressBlobArray.decompressOffset);
-							decompressBlobArray.decompressOffset += uncompressedBlobSize;
-							break;
-						}
+				err = binary.Read(compressedBlobSizeReader, binary.LittleEndian, &compressedBlobSize)
+				if err != nil {
+					return nil, fmt.Errorf("Failed to read compressedBlobSize in parseBinaryKv3Element: <%w>", err)
+				}
+
+				//let decompressBuffer = new ArrayBuffer(uncompressedBlobSize);
+
+				end := context.decompressOffset + uncompressedBlobSize
+				log.Println("decompressOffset", context.decompressOffset, end, compressionFrameSize, compressedBlobSize, uncompressedBlobSize)
+				var decompressArray = decompressBlobBuffer[context.decompressOffset:end]
+				var suboffset = uint32(0)
+				for {
+					src := make([]byte, compressedBlobSize)
+					_, err := compressedBlobReader.Read(src)
+					if err != nil {
+						return nil, fmt.Errorf("Failed to read block lz4 source in parseBinaryKv3Element: <%w>", err)
 					}
-					return decompressArray;
-				} else {
+
+					log.Println("suboffset", suboffset, uncompressedBlobSize, compressionFrameSize)
+					var decompressArray2 = decompressArray[suboffset:uncompressedBlobSize]
+					log.Println("decompressArray2", suboffset, uncompressedBlobSize, len(decompressArray2))
+					if uncompressedBlobSize > uint32(compressionFrameSize) {
+						uncompressedFrameSize, err := lz4.UncompressBlock(src, decompressArray2)
+
+						log.Println(src)
+						if err != nil {
+							return nil, fmt.Errorf("Failed to decode lz4 <1> in parseBinaryKv3Element: <%w>", err)
+						}
+						//const uncompressedFrameSize = decodeLz4(compressedBlobReader, decompressBlobArray, compressedBlobSize, compressionFrameSize, decompressBlobArray.decompressOffset)
+						context.decompressOffset += uint32(uncompressedFrameSize)
+						suboffset += uint32(uncompressedFrameSize)
+						uncompressedBlobSize -= uint32(uncompressedFrameSize)
+					} else {
+						//uncompressedBlobSize = decodeLz4(compressedBlobReader, decompressBlobArray, compressedBlobSize, uncompressedBlobSize, decompressBlobArray.decompressOffset)
+						uncompressedBlobSize, err := lz4.UncompressBlock(src, decompressArray2)
+
+						log.Println(src)
+						if err != nil {
+							return nil, fmt.Errorf("Failed to decode lz4 <2> in parseBinaryKv3Element: <%w>", err)
+						}
+						context.decompressOffset += uint32(uncompressedBlobSize)
+						suboffset += uint32(uncompressedBlobSize)
+						break
+					}
+				}
+				return decompressArray, nil
+			} else {
+				panic("code me") /*
 					if (uncompressedBlobReader) {//blobs have already been uncompressed
 						let uncompressedBlobSize = uncompressedBlobSizeReader.getUint32();
 						return uncompressedBlobReader.getBytes(uncompressedBlobSize);
@@ -278,9 +315,8 @@ func parseBinaryKv3Element(context *parseKv3Context, quadReader *bytes.Reader, e
 						if (TESTING) {
 							throw 'Missing reader';
 						}
-					}
-				}
-			*/
+					}*/
+			}
 		}
 	case kv3.DATA_TYPE_ARRAY:
 		var count uint32
