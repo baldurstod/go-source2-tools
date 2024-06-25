@@ -214,10 +214,12 @@ func parseBinaryKv3Element(context *parseKv3Context, quadReader *bytes.Reader, e
 		}
 	case kv3.DATA_TYPE_STRING:
 		var value int32
-		err := binary.Read(context.reader, binary.LittleEndian, &value)
+		err := binary.Read(quadReader, binary.LittleEndian, &value)
 		if err != nil {
 			return nil, fmt.Errorf("Failed to read value of type %d in parseBinaryKv3Element: <%w>", elementType, err)
 		}
+
+		log.Println("String id is", value)
 		return value, nil
 	case kv3.DATA_TYPE_BLOB:
 		if blobCount == 0 {
@@ -281,6 +283,102 @@ func parseBinaryKv3Element(context *parseKv3Context, quadReader *bytes.Reader, e
 				}
 			*/
 		}
+	case kv3.DATA_TYPE_ARRAY:
+		var count uint32
+		err := binary.Read(quadReader, binary.LittleEndian, &count)
+		if err != nil {
+			return nil, fmt.Errorf("Failed to read count in parseBinaryKv3Element: <%w>", err)
+		}
+
+		elements := make([]kv3.Kv3Value, count)
+		/*for (let i = 0; i < count; i++) {
+			elements.push(readBinaryKv3Element(byteReader, quadReader, eightReader, uncompressedBlobSizeReader, compressedBlobSizeReader, blobCount, decompressBlobBuffer, decompressBlobArray, compressedBlobReader, uncompressedBlobReader, typeArray, valueArray, undefined, true, compressionFrameSize));
+		}*/
+
+		for i := uint32(0); i < count; i++ {
+			value, err := parseBinaryKv3Element(context, quadReader, eightReader, uncompressedBlobSizeReader, compressedBlobSizeReader, blobCount, decompressBlobBuffer, nil, compressedBlobReader, uncompressedBlobReader, typeReader, valueArray, elementType, false, compressionFrameSize)
+
+			if err != nil {
+				return nil, fmt.Errorf("Call to parseBinaryKv3Element return an error, type %d, iteration %d: <%w>", elementType, i, err)
+			}
+
+			elements[i] = value
+		}
+		return elements, nil
+	case kv3.DATA_TYPE_OBJECT:
+		var count, nameId uint32
+		err := binary.Read(quadReader, binary.LittleEndian, &count)
+		if err != nil {
+			return nil, fmt.Errorf("Failed to read count in parseBinaryKv3Element: <%w>", err)
+		}
+
+		log.Println("Count is", count)
+
+		//elements = new Kv3Element();
+		elements := make(map[uint32]kv3.Kv3Value)
+		for i := uint32(0); i < count; i++ {
+			//let nameId = quadReader.getUint32();
+
+			err := binary.Read(quadReader, binary.LittleEndian, &nameId)
+			if err != nil {
+				return nil, fmt.Errorf("Failed to read nameId in parseBinaryKv3Element: <%w>", err)
+			}
+			log.Println("nameId is", nameId)
+
+			var elementType byte
+			err = binary.Read(typeReader, binary.LittleEndian, &elementType)
+			if err != nil {
+				return nil, fmt.Errorf("Failed to read elementType in parseBinaryKv3Element: <%w>", err)
+			}
+
+			value, err := parseBinaryKv3Element(context, quadReader, eightReader, uncompressedBlobSizeReader, compressedBlobSizeReader, blobCount, decompressBlobBuffer, nil, compressedBlobReader, uncompressedBlobReader, typeReader, valueArray, elementType, false, compressionFrameSize)
+			if err != nil {
+				return nil, fmt.Errorf("Call to parseBinaryKv3Element return an error, type %d, iteration %d: <%w>", elementType, i, err)
+			}
+			//elements.set(nameId, element);
+
+			//elements.setProperty(nameId, element);
+			elements[nameId] = value
+		}
+		return elements, nil
+/*
+		count = quadReader.getUint32();
+		//elements = new Kv3Element();
+		elements = new Map();
+		for (let i = 0; i < count; i++) {
+			let nameId = quadReader.getUint32();
+			let element = readBinaryKv3Element(byteReader, quadReader, eightReader, uncompressedBlobSizeReader, compressedBlobSizeReader, blobCount, decompressBlobBuffer, decompressBlobArray, compressedBlobReader, uncompressedBlobReader, typeArray, valueArray, undefined, false, compressionFrameSize);
+			elements.set(nameId, element);
+			//elements.setProperty(nameId, element);
+		}
+		return elements;*/
+	case kv3.DATA_TYPE_TYPED_ARRAY:
+		var count uint32
+		err := binary.Read(quadReader, binary.LittleEndian, &count)
+		if err != nil {
+			return nil, fmt.Errorf("Failed to read count in parseBinaryKv3Element: <%w>", err)
+		}
+
+		log.Println("Count for DATA_TYPE_TYPED_ARRAY is", count)
+
+		var subType byte
+		err = binary.Read(typeReader, binary.LittleEndian, &subType)
+		if err != nil {
+			return nil, fmt.Errorf("Failed to read elementType, type %d in parseBinaryKv3Element: <%w>", elementType, err)
+		}
+
+		elements := make([]kv3.Kv3Value, count)
+		for i := uint32(0); i < count; i++ {
+			//elements.push(readBinaryKv3Element(byteReader, quadReader, eightReader, uncompressedBlobSizeReader, compressedBlobSizeReader, blobCount, decompressBlobBuffer, decompressBlobArray, compressedBlobReader, uncompressedBlobReader, typeArray, valueArray, subType, true, compressionFrameSize));
+			value, err := parseBinaryKv3Element(context, quadReader, eightReader, uncompressedBlobSizeReader, compressedBlobSizeReader, blobCount, decompressBlobBuffer, nil, compressedBlobReader, uncompressedBlobReader, typeReader, valueArray, subType, true, compressionFrameSize)
+
+			if err != nil {
+				return nil, fmt.Errorf("Call to parseBinaryKv3Element return an error, type %d, iteration %d: <%w>", elementType, i, err)
+			}
+
+			elements[i] = value
+		}
+		return elements, nil
 	default:
 		return nil, fmt.Errorf("Unknown elementType %d in parseBinaryKv3Element", elementType)
 	}
