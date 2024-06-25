@@ -402,16 +402,27 @@ func parseBinaryKv3Element(context *parseKv3Context, quadReader *bytes.Reader, e
 	case kv3.DATA_TYPE_INT_ONE:
 		return 1, nil
 	case kv3.DATA_TYPE_DOUBLE_ZERO:
-		return float64(0.0), nil;
+		return float64(0.0), nil
 	case kv3.DATA_TYPE_DOUBLE_ONE:
-		return float64(1.0), nil;
+		return float64(1.0), nil
+	case kv3.DATA_TYPE_FLOAT:
+		var value float32
+		err := binary.Read(quadReader, binary.LittleEndian, &value)
+		if err != nil {
+			return nil, fmt.Errorf("Failed to read value of type %d in parseBinaryKv3Element: <%w>", elementType, err)
+		}
+		if isArray {
+			return value, nil
+		} else {
+			valueArray = append(valueArray, value)
+			return nil, nil
+		}
 	default:
 		return nil, fmt.Errorf("Unknown elementType %d in parseBinaryKv3Element", elementType)
 	}
 }
 
 /*
-
 	DATA_TYPE_NULL         = 0x01
 	DATA_TYPE_BOOL         = 0x02
 	DATA_TYPE_INT64        = 0x03
