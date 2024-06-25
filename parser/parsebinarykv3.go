@@ -341,17 +341,17 @@ func parseBinaryKv3Element(context *parseKv3Context, quadReader *bytes.Reader, e
 			elements[nameId] = value
 		}
 		return elements, nil
-/*
-		count = quadReader.getUint32();
-		//elements = new Kv3Element();
-		elements = new Map();
-		for (let i = 0; i < count; i++) {
-			let nameId = quadReader.getUint32();
-			let element = readBinaryKv3Element(byteReader, quadReader, eightReader, uncompressedBlobSizeReader, compressedBlobSizeReader, blobCount, decompressBlobBuffer, decompressBlobArray, compressedBlobReader, uncompressedBlobReader, typeArray, valueArray, undefined, false, compressionFrameSize);
-			elements.set(nameId, element);
-			//elements.setProperty(nameId, element);
-		}
-		return elements;*/
+		/*
+			count = quadReader.getUint32();
+			//elements = new Kv3Element();
+			elements = new Map();
+			for (let i = 0; i < count; i++) {
+				let nameId = quadReader.getUint32();
+				let element = readBinaryKv3Element(byteReader, quadReader, eightReader, uncompressedBlobSizeReader, compressedBlobSizeReader, blobCount, decompressBlobBuffer, decompressBlobArray, compressedBlobReader, uncompressedBlobReader, typeArray, valueArray, undefined, false, compressionFrameSize);
+				elements.set(nameId, element);
+				//elements.setProperty(nameId, element);
+			}
+			return elements;*/
 	case kv3.DATA_TYPE_TYPED_ARRAY:
 		var count uint32
 		err := binary.Read(quadReader, binary.LittleEndian, &count)
@@ -379,6 +379,32 @@ func parseBinaryKv3Element(context *parseKv3Context, quadReader *bytes.Reader, e
 			elements[i] = value
 		}
 		return elements, nil
+	case kv3.DATA_TYPE_INT32:
+		var value int32
+		err := binary.Read(quadReader, binary.LittleEndian, &value)
+		if err != nil {
+			return nil, fmt.Errorf("Failed to read value of type %d in parseBinaryKv3Element: <%w>", elementType, err)
+		}
+		return value, nil
+	case kv3.DATA_TYPE_UINT32:
+		var value uint32
+		err := binary.Read(quadReader, binary.LittleEndian, &value)
+		if err != nil {
+			return nil, fmt.Errorf("Failed to read value of type %d in parseBinaryKv3Element: <%w>", elementType, err)
+		}
+		return value, nil
+	case kv3.DATA_TYPE_TRUE:
+		return true, nil
+	case kv3.DATA_TYPE_FALSE:
+		return false, nil
+	case kv3.DATA_TYPE_INT_ZERO:
+		return 0, nil
+	case kv3.DATA_TYPE_INT_ONE:
+		return 1, nil
+	case kv3.DATA_TYPE_DOUBLE_ZERO:
+		return float64(0.0), nil;
+	case kv3.DATA_TYPE_DOUBLE_ONE:
+		return float64(1.0), nil;
 	default:
 		return nil, fmt.Errorf("Unknown elementType %d in parseBinaryKv3Element", elementType)
 	}
