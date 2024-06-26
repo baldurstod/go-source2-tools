@@ -396,12 +396,13 @@ func parseDataKV3(context *parseContext, block *source2.FileBlock, version int) 
 		decoder, _ := zstd.NewReader(nil, zstd.WithDecoderConcurrency(0))
 		currentPos, _ := context.reader.Seek(0, io.SeekCurrent)
 		src := context.b[uint32(currentPos) : uint32(currentPos)+compressedLength]
-		dst, err = decoder.DecodeAll(src, nil)
+		sa, err := decoder.DecodeAll(src, nil)
+		dst = sa[0:decodeLength]
 		if err != nil {
 			return fmt.Errorf("failed to decode zstd in parseDataKV3 for compression method %d: <%w>", compressionMethod, err)
 		}
 		if blobCount > 0 {
-			uncompressedBlobReader = bytes.NewReader(dst[decodeLength:])
+			uncompressedBlobReader = bytes.NewReader(sa[decodeLength:])
 		}
 
 	default:
