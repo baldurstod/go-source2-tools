@@ -464,8 +464,6 @@ func parseBinaryKv3Element(context *parseKv3Context, quadReader *bytes.Reader, e
 			return nil, fmt.Errorf("failed to read count in parseBinaryKv3Element: <%w>", err)
 		}
 
-		log.Println("Count for DATA_TYPE_TYPED_ARRAY is", count)
-
 		subType, err := readElementType(typeReader)
 		if err != nil {
 			return nil, fmt.Errorf("failed to read elementType, type %d in parseBinaryKv3Element: <%w>", elementType, err)
