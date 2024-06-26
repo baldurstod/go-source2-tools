@@ -27,7 +27,6 @@ func newParseKv3Context(reader io.ReadSeeker) *parseKv3Context {
 func ParseKv3(b []byte, version int, singleByteCount uint32, quadByteCount uint32, eightByteCount uint32, dictionaryTypeLength uint32,
 	blobCount uint32, totalUncompressedBlobSize uint32, compressedBlobReader io.ReadSeeker, uncompressedBlobReader io.ReadSeeker, compressionFrameSize uint16) (*kv3.Kv3Element, error) {
 	context := newParseKv3Context(bytes.NewReader(b))
-	log.Println("Start parsing kv3", blobCount)
 
 	quadCursor := math.Ceil(float64(singleByteCount)/4) * 4
 	eightCursor := math.Ceil((quadCursor+float64(quadByteCount)*4)/8) * 8
@@ -93,7 +92,7 @@ func ParseKv3(b []byte, version int, singleByteCount uint32, quadByteCount uint3
 	}
 
 	context.reader.Seek(int64(dictionaryOffset), io.SeekStart)
-	context.stringDictionary = make([]string, stringCount)
+	context.stringDictionary = make([]string, 0, stringCount)
 	readStringDictionary(context, stringCount)
 
 	var decompressBlobBuffer []byte
@@ -116,7 +115,7 @@ func ParseKv3(b []byte, version int, singleByteCount uint32, quadByteCount uint3
 		return nil, fmt.Errorf("call to parsebinarykv3element returned an error in ParseKv3: <%w>", err)
 	}
 
-	log.Println("End parsing kv3", size, stringCount, rootElement)
+	//log.Println("End parsing kv3", size, stringCount, rootElement)
 	return rootElement.(*kv3.Kv3Element), nil
 }
 
@@ -128,7 +127,6 @@ func readStringDictionary(context *parseKv3Context, stringCount uint32) error {
 		}
 		context.stringDictionary = append(context.stringDictionary, s)
 	}
-	log.Println(context.stringDictionary)
 	return nil
 }
 
@@ -215,7 +213,11 @@ func parseBinaryKv3Element(context *parseKv3Context, quadReader *bytes.Reader, e
 			return nil, fmt.Errorf("failed to read value of type %d in parseBinaryKv3Element: <%w>", elementType, err)
 		}
 
-		return value, nil
+		if value < 0 {
+			return "", nil
+		} else {
+			return context.stringDictionary[value], nil
+		}
 	case kv3.DATA_TYPE_BLOB:
 		if blobCount == 0 {
 			var count uint32
