@@ -114,7 +114,7 @@ func ParseKv3(b []byte, version int, singleByteCount uint32, quadByteCount uint3
 		return nil, fmt.Errorf("failed to read elementType in ParseKv3: <%w>", err)
 	}
 
-	rootElement, err := parseBinaryKv3Element(context, quadReader, eightReader, uncompressedBlobSizeReader, compressedBlobSizeReader, blobCount, decompressBlobBuffer, nil, compressedBlobReader, uncompressedBlobReader, typeReader, valueArray, elementType, false, compressionFrameSize)
+	rootElement, err := parseBinaryKv3Element(context, quadReader, eightReader, uncompressedBlobSizeReader, compressedBlobSizeReader, blobCount, decompressBlobBuffer, compressedBlobReader, uncompressedBlobReader, typeReader, valueArray, elementType, false, compressionFrameSize)
 	if err != nil {
 		return nil, fmt.Errorf("call to parsebinarykv3element returned an error in ParseKv3: <%w>", err)
 	}
@@ -135,7 +135,7 @@ func readStringDictionary(context *parseKv3Context, stringDictionary []string, s
 }
 
 func parseBinaryKv3Element(context *parseKv3Context, quadReader *bytes.Reader, eightReader *bytes.Reader, uncompressedBlobSizeReader io.ReadSeeker, compressedBlobSizeReader io.ReadSeeker, blobCount uint32,
-	decompressBlobBuffer []byte, decompressBlobArray any, compressedBlobReader io.ReadSeeker, uncompressedBlobReader io.ReadSeeker, typeReader io.ReadSeeker, valueArray []kv3.Kv3Value, elementType byte, isArray bool, compressionFrameSize uint16) (kv3.Kv3Value, error) {
+	decompressBlobBuffer []byte, compressedBlobReader io.ReadSeeker, uncompressedBlobReader io.ReadSeeker, typeReader io.ReadSeeker, valueArray []kv3.Kv3Value, elementType byte, isArray bool, compressionFrameSize uint16) (kv3.Kv3Value, error) {
 
 	switch elementType {
 	case kv3.DATA_TYPE_NULL:
@@ -328,7 +328,7 @@ func parseBinaryKv3Element(context *parseKv3Context, quadReader *bytes.Reader, e
 		}*/
 
 		for i := uint32(0); i < count; i++ {
-			value, err := parseBinaryKv3Element(context, quadReader, eightReader, uncompressedBlobSizeReader, compressedBlobSizeReader, blobCount, decompressBlobBuffer, nil, compressedBlobReader, uncompressedBlobReader, typeReader, valueArray, elementType, false, compressionFrameSize)
+			value, err := parseBinaryKv3Element(context, quadReader, eightReader, uncompressedBlobSizeReader, compressedBlobSizeReader, blobCount, decompressBlobBuffer, compressedBlobReader, uncompressedBlobReader, typeReader, valueArray, elementType, false, compressionFrameSize)
 
 			if err != nil {
 				return nil, fmt.Errorf("call to parsebinarykv3element return an error, type %d, iteration %d: <%w>", elementType, i, err)
@@ -359,7 +359,7 @@ func parseBinaryKv3Element(context *parseKv3Context, quadReader *bytes.Reader, e
 				return nil, fmt.Errorf("failed to read elementType in parseBinaryKv3Element: <%w>", err)
 			}
 
-			value, err := parseBinaryKv3Element(context, quadReader, eightReader, uncompressedBlobSizeReader, compressedBlobSizeReader, blobCount, decompressBlobBuffer, nil, compressedBlobReader, uncompressedBlobReader, typeReader, valueArray, elementType, false, compressionFrameSize)
+			value, err := parseBinaryKv3Element(context, quadReader, eightReader, uncompressedBlobSizeReader, compressedBlobSizeReader, blobCount, decompressBlobBuffer, compressedBlobReader, uncompressedBlobReader, typeReader, valueArray, elementType, false, compressionFrameSize)
 			if err != nil {
 				return nil, fmt.Errorf("call to parsebinarykv3element return an error, type %d, iteration %d: <%w>", elementType, i, err)
 			}
@@ -395,7 +395,7 @@ func parseBinaryKv3Element(context *parseKv3Context, quadReader *bytes.Reader, e
 		elements := make([]kv3.Kv3Value, count)
 		for i := uint32(0); i < count; i++ {
 			//elements.push(readBinaryKv3Element(byteReader, quadReader, eightReader, uncompressedBlobSizeReader, compressedBlobSizeReader, blobCount, decompressBlobBuffer, decompressBlobArray, compressedBlobReader, uncompressedBlobReader, typeArray, valueArray, subType, true, compressionFrameSize));
-			value, err := parseBinaryKv3Element(context, quadReader, eightReader, uncompressedBlobSizeReader, compressedBlobSizeReader, blobCount, decompressBlobBuffer, nil, compressedBlobReader, uncompressedBlobReader, typeReader, valueArray, subType, true, compressionFrameSize)
+			value, err := parseBinaryKv3Element(context, quadReader, eightReader, uncompressedBlobSizeReader, compressedBlobSizeReader, blobCount, decompressBlobBuffer, compressedBlobReader, uncompressedBlobReader, typeReader, valueArray, subType, true, compressionFrameSize)
 
 			if err != nil {
 				return nil, fmt.Errorf("call to parsebinarykv3element return an error, type %d, iteration %d: <%w>", elementType, i, err)
@@ -459,7 +459,7 @@ func parseBinaryKv3Element(context *parseKv3Context, quadReader *bytes.Reader, e
 		elements := make([]kv3.Kv3Value, count)
 		for i := uint8(0); i < count; i++ {
 			//elements.push(readBinaryKv3Element(byteReader, quadReader, eightReader, uncompressedBlobSizeReader, compressedBlobSizeReader, blobCount, decompressBlobBuffer, decompressBlobArray, compressedBlobReader, uncompressedBlobReader, typeArray, valueArray, subType, true, compressionFrameSize));
-			value, err := parseBinaryKv3Element(context, quadReader, eightReader, uncompressedBlobSizeReader, compressedBlobSizeReader, blobCount, decompressBlobBuffer, nil, compressedBlobReader, uncompressedBlobReader, typeReader, valueArray, subType, true, compressionFrameSize)
+			value, err := parseBinaryKv3Element(context, quadReader, eightReader, uncompressedBlobSizeReader, compressedBlobSizeReader, blobCount, decompressBlobBuffer, compressedBlobReader, uncompressedBlobReader, typeReader, valueArray, subType, true, compressionFrameSize)
 
 			if err != nil {
 				return nil, fmt.Errorf("call to parsebinarykv3element return an error, type %d, iteration %d: <%w>", elementType, i, err)
