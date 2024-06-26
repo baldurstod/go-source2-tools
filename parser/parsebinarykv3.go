@@ -305,7 +305,23 @@ func parseBinaryKv3Element(context *parseKv3Context, quadReader *bytes.Reader, e
 				}
 				return decompressArray, nil
 			} else {
-				panic("code me") /*
+				if uncompressedBlobReader != nil {
+					var uncompressedBlobSize uint32
+					err := binary.Read(uncompressedBlobSizeReader, binary.LittleEndian, &uncompressedBlobSize)
+					if err != nil {
+						return nil, fmt.Errorf("failed to read uncompressedBlobSize in parseBinaryKv3Element: <%w>", err)
+					}
+
+					dst := make([]byte, uncompressedBlobSize)
+					_, err = uncompressedBlobReader.Read(dst)
+					if err != nil {
+						return nil, fmt.Errorf("failed to  uncompressed blob in parseBinaryKv3Element: <%w>", err)
+					}
+					return dst, nil
+				} else {
+					panic("This case should not happen")
+				}
+				/*
 					if (uncompressedBlobReader) {//blobs have already been uncompressed
 						let uncompressedBlobSize = uncompressedBlobSizeReader.getUint32();
 						return uncompressedBlobReader.getBytes(uncompressedBlobSize);
