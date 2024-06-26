@@ -95,6 +95,8 @@ func ParseKv3(b []byte, version int, singleByteCount uint32, quadByteCount uint3
 	context.stringDictionary = make([]string, 0, stringCount)
 	readStringDictionary(context, stringCount)
 
+	context.reader.Seek(int64(0), io.SeekStart)
+
 	var decompressBlobBuffer []byte
 	//let decompressBlobArray;
 
