@@ -8,6 +8,7 @@ import (
 	"log"
 
 	"github.com/baldurstod/go-source2-tools"
+	"github.com/klauspost/compress/zstd"
 	"github.com/pierrec/lz4/v4"
 )
 
@@ -391,9 +392,14 @@ func parseDataKV3(context *parseContext, block *source2.FileBlock, version int) 
 		if err != nil || uint32(size) != decodeLength {
 			return fmt.Errorf("failed to decode lz4 in parseDataKV3 for compression method %d: <%w>", compressionMethod, err)
 		}
-		//compressedLength
-		//decodeLength
-		//log.Println(size, err, dst)
+	case 2: //new since spectre arcana
+		decoder, _ := zstd.NewReader(nil, zstd.WithDecoderConcurrency(0))
+		currentPos, _ := context.reader.Seek(0, io.SeekCurrent)
+		src := context.b[uint32(currentPos) : uint32(currentPos)+compressedLength]
+		dst, err = decoder.DecodeAll(src, nil)
+		if err != nil {
+			return fmt.Errorf("failed to decode zstd in parseDataKV3 for compression method %d: <%w>", compressionMethod, err)
+		}
 	default:
 		return fmt.Errorf("unknow compression method in parsedatakv3: %d", compressionMethod)
 	}
