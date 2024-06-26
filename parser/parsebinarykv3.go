@@ -14,7 +14,6 @@ import (
 
 type parseKv3Context struct {
 	reader           io.ReadSeeker
-	root             *kv3.Kv3Element
 	stringDictionary []string
 	decompressOffset uint32
 }
@@ -117,10 +116,8 @@ func ParseKv3(b []byte, version int, singleByteCount uint32, quadByteCount uint3
 		return nil, fmt.Errorf("call to parsebinarykv3element returned an error in ParseKv3: <%w>", err)
 	}
 
-	//context.root = rootElement.(*kv3.Kv3Element)
-
 	log.Println("End parsing kv3", size, stringCount, rootElement)
-	return context.root, nil
+	return rootElement.(*kv3.Kv3Element), nil
 }
 
 func readStringDictionary(context *parseKv3Context, stringCount uint32) error {
@@ -345,8 +342,7 @@ func parseBinaryKv3Element(context *parseKv3Context, quadReader *bytes.Reader, e
 			return nil, fmt.Errorf("failed to read count in parseBinaryKv3Element: <%w>", err)
 		}
 
-		//elements = new Kv3Element();
-		elements := make(map[uint32]kv3.Kv3Value)
+		element := kv3.NewKv3Element()
 		for i := uint32(0); i < count; i++ {
 			//let nameId = quadReader.getUint32();
 
@@ -364,12 +360,10 @@ func parseBinaryKv3Element(context *parseKv3Context, quadReader *bytes.Reader, e
 			if err != nil {
 				return nil, fmt.Errorf("call to parsebinarykv3element return an error, type %d, iteration %d: <%w>", elementType, i, err)
 			}
-			//elements.set(nameId, element);
 
-			//elements.setProperty(nameId, element);
-			elements[nameId] = value
+			element.AddAttribute(context.stringDictionary[nameId], value)
 		}
-		return elements, nil
+		return element, nil
 		/*
 			count = quadReader.getUint32();
 			//elements = new Kv3Element();
