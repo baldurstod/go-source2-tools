@@ -1,11 +1,12 @@
 package source2_test
 
 import (
-	"github.com/baldurstod/go-source2-tools/parser"
 	"log"
 	"os"
 	"path"
 	"testing"
+
+	"github.com/baldurstod/go-source2-tools/parser"
 )
 
 const varFolder = "./var/"
@@ -18,8 +19,7 @@ func Test(t *testing.T) {
 	if err != nil {
 		log.Println(err)
 	} else {
-		log.Println(file)
+		//log.Println(file)
 		log.Println(file.GetBlock("DATA"))
 	}
-
 }

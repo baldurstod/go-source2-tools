@@ -27,6 +27,16 @@ type FileBlock struct {
 	Data    any
 }
 
+func (fb *FileBlock) String() string {
+	switch fb.Data.(type) {
+	case *FileBlockDATA:
+		return fb.Data.(*FileBlockDATA).String()
+
+	}
+
+	return ""
+}
+
 func (f *File) AddBlock(resType string, offset uint32, length uint32) {
 	fb := &FileBlock{
 		File:    f,
@@ -71,4 +81,12 @@ type FileBlockDATA struct {
 
 func NewFileBlockDATA() *FileBlockDATA {
 	return &FileBlockDATA{}
+}
+
+func (fb *FileBlockDATA) String() string {
+	if fb.KeyValue != nil {
+		return fb.KeyValue.String()
+	} else {
+		return ""
+	}
 }
