@@ -21,9 +21,7 @@ type parseKv3Context struct {
 
 func newParseKv3Context(reader io.ReadSeeker) *parseKv3Context {
 	return &parseKv3Context{
-		reader:           reader,
-		root:             kv3.NewKv3Element(),
-		stringDictionary: make([]string, 0),
+		reader: reader,
 	}
 }
 
@@ -96,8 +94,8 @@ func ParseKv3(b []byte, version int, singleByteCount uint32, quadByteCount uint3
 	}
 
 	context.reader.Seek(int64(dictionaryOffset), io.SeekStart)
-	stringDictionary := make([]string, stringCount)
-	readStringDictionary(context, stringDictionary, stringCount)
+	context.stringDictionary = make([]string, stringCount)
+	readStringDictionary(context, stringCount)
 
 	var decompressBlobBuffer []byte
 	//let decompressBlobArray;
@@ -119,18 +117,21 @@ func ParseKv3(b []byte, version int, singleByteCount uint32, quadByteCount uint3
 		return nil, fmt.Errorf("call to parsebinarykv3element returned an error in ParseKv3: <%w>", err)
 	}
 
+	//context.root = rootElement.(*kv3.Kv3Element)
+
 	log.Println("End parsing kv3", size, stringCount, rootElement)
 	return context.root, nil
 }
 
-func readStringDictionary(context *parseKv3Context, stringDictionary []string, stringCount uint32) error {
+func readStringDictionary(context *parseKv3Context, stringCount uint32) error {
 	for i := uint32(0); i < stringCount; i++ {
 		s, err := readNullString(context.reader)
 		if err != nil {
 			return fmt.Errorf("failed to read string in readStringDictionary: <%w>", err)
 		}
-		stringDictionary = append(stringDictionary, s)
+		context.stringDictionary = append(context.stringDictionary, s)
 	}
+	log.Println(context.stringDictionary)
 	return nil
 }
 
