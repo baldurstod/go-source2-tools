@@ -400,6 +400,10 @@ func parseDataKV3(context *parseContext, block *source2.FileBlock, version int) 
 		if err != nil {
 			return fmt.Errorf("failed to decode zstd in parseDataKV3 for compression method %d: <%w>", compressionMethod, err)
 		}
+		if blobCount > 0 {
+			uncompressedBlobReader = bytes.NewReader(dst[decodeLength:])
+		}
+
 	default:
 		return fmt.Errorf("unknow compression method in parsedatakv3: %d", compressionMethod)
 	}
