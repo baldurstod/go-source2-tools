@@ -48,7 +48,6 @@ func ParseKv3(b []byte, version int, singleByteCount uint32, quadByteCount uint3
 		} else {
 			if uncompressedBlobReader != nil {
 				uncompressedBlobSizeReader = bytes.NewReader(b[blobEnd-blobCount*4 : blobEnd])
-				log.Println(uncompressedBlobSizeReader)
 			}
 		}
 	}

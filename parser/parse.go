@@ -144,15 +144,12 @@ func parseRERL(context *parseContext, block *source2.FileBlock) error {
 		return fmt.Errorf("failed to read resCount in parseRERL: <%w>", err)
 	}
 
-	log.Println(block.Offset, resOffset, resCount)
-
 	fileBlockRERL := source2.NewFileBlockRERL()
 	block.Data = fileBlockRERL
 
 	handle := make([]byte, 8)
 	for i := uint32(0); i < resCount; i++ {
 		context.reader.Seek(int64(block.Offset+resOffset+16*i), io.SeekStart)
-		log.Println(block.Offset + resOffset + 16*i)
 
 		_, err := reader.Read(handle)
 		if err != nil {
@@ -172,7 +169,6 @@ func parseRERL(context *parseContext, block *source2.FileBlock) error {
 
 		//readHandle(reader)
 	}
-	log.Println(block.Offset, resOffset, resCount, fileBlockRERL)
 	/*
 		function loadRerl(reader, block) {
 			reader.seek(block.offset);
@@ -204,7 +200,6 @@ func parseDATA(context *parseContext, block *source2.FileBlock) error {
 	reader.Seek(int64(block.Offset), io.SeekStart)
 	fileBlockDATA := source2.NewFileBlockDATA()
 	block.Data = fileBlockDATA
-	log.Println(block)
 	var magic uint32
 
 	err := binary.Read(reader, binary.LittleEndian, &magic)
