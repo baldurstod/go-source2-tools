@@ -75,7 +75,7 @@ func ParseKv3(b []byte, version int, singleByteCount uint32, quadByteCount uint3
 	}
 
 	typeReader := bytes.NewReader(b[s+1 : offset])
-	valueArray := make([]kv3.Kv3Value, s)
+	valueArray := make([]kv3.Kv3Value, 0, s)
 	//let valueArray = [];
 	//byteReader := bytes.NewReader(b)
 	quadReader := bytes.NewReader(b)
