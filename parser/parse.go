@@ -121,7 +121,7 @@ func parseBlock(context *parseContext, block *source2.FileBlock) error {
 	case "MBUF":
 		err = parseVbib(context, block)
 	default:
-		panic("unknown block " + block.ResType)
+		log.Println("Unknown block type", block.ResType)
 	}
 
 	if err != nil {
