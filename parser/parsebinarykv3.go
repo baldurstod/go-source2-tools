@@ -345,7 +345,12 @@ func parseBinaryKv3Element(context *parseKv3Context, quadReader *bytes.Reader, e
 		}*/
 
 		for i := uint32(0); i < count; i++ {
-			value, err := parseBinaryKv3Element(context, quadReader, eightReader, uncompressedBlobSizeReader, compressedBlobSizeReader, blobCount, decompressBlobBuffer, compressedBlobReader, uncompressedBlobReader, typeReader, valueArray, elementType, false, compressionFrameSize)
+			subType, err := readElementType(typeReader)
+			if err != nil {
+				return nil, fmt.Errorf("failed to read elementType, type %d in parseBinaryKv3Element: <%w>", elementType, err)
+			}
+
+			value, err := parseBinaryKv3Element(context, quadReader, eightReader, uncompressedBlobSizeReader, compressedBlobSizeReader, blobCount, decompressBlobBuffer, compressedBlobReader, uncompressedBlobReader, typeReader, valueArray, subType, false, compressionFrameSize)
 
 			if err != nil {
 				return nil, fmt.Errorf("call to parsebinarykv3element return an error, type %d, iteration %d: <%w>", elementType, i, err)
