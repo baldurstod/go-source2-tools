@@ -1,6 +1,6 @@
 module github.com/baldurstod/go-source2-tools
 
-go 1.19
+go 1.22
 
 require (
 	github.com/klauspost/compress v1.17.9
