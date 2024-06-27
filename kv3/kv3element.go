@@ -48,26 +48,36 @@ func (e *Kv3Element) String() string {
 
 func valueToString(v any) string {
 	switch v := v.(type) {
+	case int:
+		return strconv.Itoa(v)
+	case int8:
+		return strconv.Itoa(int(v))
 	case int32:
 		return strconv.Itoa(int(v))
 	case uint32:
 		return strconv.FormatUint(uint64(v), 10)
 	case uint64:
 		return strconv.FormatUint(v, 10)
+	case float32:
+		return strconv.FormatFloat(float64(v), 'g', -1, 32)
 	case float64:
-		return strconv.FormatFloat(v, 'g', -1, 32)
+		return strconv.FormatFloat(v, 'g', -1, 64)
+	case bool:
+		return strconv.FormatBool(v)
 	case string:
 		return v
 	case nil:
 	case []Kv3Value:
 		ret := "["
 		for _, v2 := range v {
-			/*switch v2 := v2.(type) {
-				case Uint
-			default:
-				log.Println("Unknown type2:", v2)
-			}*/
 			ret += "\n\t" + valueToString(v2) + ","
+		}
+		ret += "\n]"
+		return ret
+	case []byte:
+		ret := "["
+		for _, v2 := range v {
+			ret += "\n\t" + strconv.Itoa(int(v2)) + ","
 		}
 		ret += "\n]"
 		return ret
