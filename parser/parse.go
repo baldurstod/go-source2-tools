@@ -118,6 +118,10 @@ func parseBlock(context *parseContext, block *source2.FileBlock) error {
 		err = parseRERL(context, block)
 	case "DATA", "ANIM", "CTRL", "MRPH", "MDAT", "ASEQ", "AGRP", "PHYS", "LaCo":
 		err = parseDATA(context, block)
+	case "MBUF":
+		err = parseVbib(context, block)
+	default:
+		panic("unknown block " + block.ResType)
 	}
 
 	if err != nil {

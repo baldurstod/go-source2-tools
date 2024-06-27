@@ -90,3 +90,10 @@ func (fb *FileBlockDATA) String() string {
 		return ""
 	}
 }
+
+type FileBlockMBUF struct {
+}
+
+func NewFileBlockMBUF() *FileBlockMBUF {
+	return &FileBlockMBUF{}
+}
