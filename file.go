@@ -24,15 +24,19 @@ type FileBlock struct {
 	ResType string
 	Offset  uint32
 	Length  uint32
-	Data    any
+	Content FileBlockContent
 }
 
 func (fb *FileBlock) String() string {
+	if fb.Content != nil {
+		return fb.Content.String()
+	}
+	/*
 	switch fb.Data.(type) {
 	case *FileBlockDATA:
 		return fb.Data.(*FileBlockDATA).String()
 
-	}
+		}*/
 
 	return ""
 }
@@ -75,6 +79,14 @@ func (fb *FileBlockRERL) AddExternalFile(handle string, filename string) {
 	fb.ExternalFilesByHandle[handle] = filename
 }
 
+func (fb *FileBlockRERL) String() string {
+	panic("TODO")
+}
+
+type FileBlockContent interface {
+	String() string
+}
+
 type FileBlockDATA struct {
 	KeyValue *kv3.Kv3Element
 }
@@ -96,4 +108,8 @@ type FileBlockMBUF struct {
 
 func NewFileBlockMBUF() *FileBlockMBUF {
 	return &FileBlockMBUF{}
+}
+
+func (fb *FileBlockMBUF) String() string {
+	panic("TODO")
 }

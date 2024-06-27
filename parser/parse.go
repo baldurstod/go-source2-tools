@@ -149,7 +149,7 @@ func parseRERL(context *parseContext, block *source2.FileBlock) error {
 	}
 
 	fileBlockRERL := source2.NewFileBlockRERL()
-	block.Data = fileBlockRERL
+	block.Content = fileBlockRERL
 
 	handle := make([]byte, 8)
 	for i := uint32(0); i < resCount; i++ {
@@ -203,7 +203,7 @@ func parseDATA(context *parseContext, block *source2.FileBlock) error {
 	reader := context.reader
 	reader.Seek(int64(block.Offset), io.SeekStart)
 	fileBlockDATA := source2.NewFileBlockDATA()
-	block.Data = fileBlockDATA
+	block.Content = fileBlockDATA
 	var magic uint32
 
 	err := binary.Read(reader, binary.LittleEndian, &magic)
@@ -412,7 +412,7 @@ func parseDataKV3(context *parseContext, block *source2.FileBlock, version int) 
 	if err != nil {
 		return fmt.Errorf("failed to parse kv3 in parseDataKV3: <%w>", err)
 	}
-	block.Data.(*source2.FileBlockDATA).KeyValue = kv
+	block.Content.(*source2.FileBlockDATA).KeyValue = kv
 
 	//log.Println(compressionMethod, compressionDictionaryId, compressionFrameSize, singleByteCount, quadByteCount, eightByteCount, compressedLength)
 	//log.Println(dictionaryTypeLength, unknown3, unknown4, decodeLength)

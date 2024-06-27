@@ -23,7 +23,7 @@ func parseVbib(context *parseContext, block *source2.FileBlock) error {
 	blockReader := bytes.NewReader(context.b[block.Offset:])
 
 	fileBlockMBUF := source2.NewFileBlockMBUF()
-	block.Data = fileBlockMBUF
+	block.Content = fileBlockMBUF
 
 	var vertexOffset, vertexCount, indexOffset, indexCount int32
 	err := binary.Read(blockReader, binary.LittleEndian, &vertexOffset)
