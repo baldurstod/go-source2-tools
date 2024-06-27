@@ -1,6 +1,9 @@
 package source2
 
 import (
+	"errors"
+	"strings"
+
 	"github.com/baldurstod/go-source2-tools/kv3"
 )
 
@@ -31,14 +34,16 @@ func (fb *FileBlock) String() string {
 	if fb.Content != nil {
 		return fb.Content.String()
 	}
-	/*
-	switch fb.Data.(type) {
-	case *FileBlockDATA:
-		return fb.Data.(*FileBlockDATA).String()
-
-		}*/
 
 	return ""
+}
+
+func (fb *FileBlock) GetBlockStruct(path []string) (any, error) {
+	if fb.Content != nil {
+		return fb.Content.GetBlockStruct(path)
+	}
+
+	return nil, errors.New("block content is empty")
 }
 
 func (f *File) AddBlock(resType string, offset uint32, length uint32) {
@@ -62,6 +67,22 @@ func (f *File) GetBlock(resType string) *FileBlock {
 	return f.Blocks[resType]
 }
 
+func (f *File) GetBlockStruct(path string) (any, error) {
+	v := strings.Split(path, ".")
+
+	if len(v) < 1 {
+		return nil, errors.New("path is too short: " + path)
+	}
+
+	block := f.GetBlock(v[0])
+
+	if block == nil {
+		return nil, errors.New("block not found: " + v[0])
+	}
+
+	return block.GetBlockStruct(v[1:])
+}
+
 type FileBlockRERL struct {
 	ExternalFilesByIndex  []string
 	ExternalFilesByHandle map[string]string
@@ -79,12 +100,17 @@ func (fb *FileBlockRERL) AddExternalFile(handle string, filename string) {
 	fb.ExternalFilesByHandle[handle] = filename
 }
 
-func (fb *FileBlockRERL) String() string {
+func (rerl *FileBlockRERL) String() string {
+	panic("TODO")
+}
+
+func (rerl *FileBlockRERL) GetBlockStruct(path []string) (any, error) {
 	panic("TODO")
 }
 
 type FileBlockContent interface {
 	String() string
+	GetBlockStruct(path []string) (any, error)
 }
 
 type FileBlockDATA struct {
@@ -103,6 +129,61 @@ func (fb *FileBlockDATA) String() string {
 	}
 }
 
+func (data *FileBlockDATA) GetBlockStruct(path []string) (any, error) {
+	//panic("TODO")
+	if len(path) < 1 {
+		return nil, nil
+	}
+
+	current := data.KeyValue
+	if current == nil {
+		return nil, errors.New("data block don't have key value")
+	}
+
+	var v any
+	var ok bool
+
+	v = current.GetAttribute(path[0])
+
+	for _, s := range path[1:] {
+
+		current, ok = v.(*kv3.Kv3Element)
+		if !ok {
+			return nil, errors.New("can't convert to Kv3Element")
+		}
+		//element = current.(*Kv3Element)
+		v = current.GetAttribute(s)
+
+		if v == nil {
+			return nil, nil
+		}
+		//GetAttribute
+		//ret += "\n\t" + valueToString(v2) + ","
+	}
+
+	return v, nil
+
+	/*
+
+		var arr = path.split('.');
+		var data = this.blocks;
+		if (!data) {
+			return null;
+		}
+
+		var sub;
+		for (var i = 0; i < arr.length; i++) {
+			sub = data[arr[i]];
+			if (!sub) {
+				return null;
+			}
+			data = sub;
+		}
+
+		return data;
+	*/
+}
+
 type FileBlockMBUF struct {
 }
 
@@ -110,6 +191,10 @@ func NewFileBlockMBUF() *FileBlockMBUF {
 	return &FileBlockMBUF{}
 }
 
-func (fb *FileBlockMBUF) String() string {
+func (mbuf *FileBlockMBUF) String() string {
+	panic("TODO")
+}
+
+func (mbuf *FileBlockMBUF) GetBlockStruct(path []string) (any, error) {
 	panic("TODO")
 }
