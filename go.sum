@@ -1,3 +1,5 @@
+github.com/baldurstod/go-vector v0.0.2 h1:3a3yuGExkI/gvCd1Rwqlhx/3XAjSRuDyK47Hv0rtAnc=
+github.com/baldurstod/go-vector v0.0.2/go.mod h1:me5cEeN37fDL6y9VDtpH2BOcIloXq1LVSKo/dLIsDS0=
 github.com/klauspost/compress v1.17.9 h1:6KIumPrER1LHsvBVuDa0r5xaG0Es51mhhB9BQB2qeMA=
 github.com/klauspost/compress v1.17.9/go.mod h1:Di0epgTjJY877eYKx5yC51cX2A2Vl2ibi7bDH9ttBbw=
 github.com/pierrec/lz4/v4 v4.1.21 h1:yOVMLb6qSIDP67pl/5F7RepeKYu/VmTyEXvuMI5d9mQ=

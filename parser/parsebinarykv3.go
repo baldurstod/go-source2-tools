@@ -293,7 +293,6 @@ func parseBinaryKv3Element(context *parseKv3Context, quadReader *bytes.Reader, e
 						//uncompressedBlobSize = decodeLz4(compressedBlobReader, decompressBlobArray, compressedBlobSize, uncompressedBlobSize, decompressBlobArray.decompressOffset)
 						uncompressedBlobSize, err := lz4.UncompressBlockWithDict(src, decompressArray2, dict)
 
-						log.Println(src)
 						if err != nil {
 							return nil, fmt.Errorf("failed to decode lz4 <2> in parseBinaryKv3Element: <%w>", err)
 						}

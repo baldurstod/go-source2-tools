@@ -1,6 +1,9 @@
 package model
 
-import "errors"
+import (
+	"errors"
+	"fmt"
+)
 
 type Skeleton struct {
 	bones []*Bone
@@ -12,6 +15,11 @@ func NewSkeleton(bones int) *Skeleton {
 		bones: make([]*Bone, 0, bones),
 		names: make(map[string]*Bone),
 	}
+}
+
+func (s *Skeleton) CreateBone(name string) (*Bone, error) {
+	b := NewBone(name)
+	return b, s.AddBone(b)
 }
 
 func (s *Skeleton) AddBone(bone *Bone) error {
@@ -38,4 +46,8 @@ func (s *Skeleton) GetBoneByName(name string) (*Bone, error) {
 	}
 
 	return bone, nil
+}
+
+func (s *Skeleton) String() string {
+	return fmt.Sprint(s.bones)
 }
