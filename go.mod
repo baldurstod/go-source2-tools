@@ -7,4 +7,7 @@ require (
 	github.com/pierrec/lz4/v4 v4.1.21
 )
 
-require github.com/baldurstod/go-vector v0.0.2 // indirect
+require (
+	github.com/baldurstod/go-vector v0.0.3 // indirect
+	golang.org/x/exp v0.0.0-20240613232115-7f521ea00fb8 // indirect
+)

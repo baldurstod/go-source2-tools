@@ -24,3 +24,21 @@ func KvArrayToVector3(src []kv3.Kv3Value, dst *vector.Vector3[float32]) error {
 	}
 	return nil
 }
+
+func KvArrayToQuaternion(src []kv3.Kv3Value, dst *vector.Quaternion[float32]) error {
+	if len(src) != 4 {
+		return errors.New("length of quaternion must be 4")
+	}
+
+	for i := 0; i < 4; i++ {
+		switch v := src[i].(type) {
+		case float32:
+			dst[i] = v
+		case float64:
+			dst[i] = float32(v)
+		default:
+			return errors.New("unknown value type")
+		}
+	}
+	return nil
+}

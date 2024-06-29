@@ -1,6 +1,8 @@
 package model
 
-import "github.com/baldurstod/go-vector"
+import (
+	"github.com/baldurstod/go-vector"
+)
 
 type Bone struct {
 	Name        string
@@ -25,6 +27,8 @@ func (b *Bone) String() string {
 		s += " parent: "
 		s += b.ParentBone.Name
 	}
+	s += b.PosParent.String()
+	s += b.RotParent.String()
 
 	s += "}"
 	return s

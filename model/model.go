@@ -2,6 +2,7 @@ package model
 
 import (
 	"errors"
+	"fmt"
 	"log"
 
 	"github.com/baldurstod/go-source2-tools"
@@ -83,6 +84,7 @@ func (m *Model) initSkeleton() (*Skeleton, error) {
 	s := NewSkeleton(len(boneNamesArray))
 	var boneName string
 	var bonePosParent []kv3.Kv3Value
+	var boneRotParent []kv3.Kv3Value
 	for i := 0; i < len(boneNamesArray); i++ {
 		if boneName, ok = boneNamesArray[i].(string); !ok {
 			return nil, errors.New("bone name is not a string")
@@ -90,9 +92,17 @@ func (m *Model) initSkeleton() (*Skeleton, error) {
 		if bonePosParent, ok = bonePosParentArray[i].([]kv3.Kv3Value); !ok {
 			return nil, errors.New("bone pos is not an array")
 		}
+		if boneRotParent, ok = boneRotParentArray[i].([]kv3.Kv3Value); !ok {
+			return nil, errors.New("bone rot is not an array")
+		}
 
 		bone, _ := s.CreateBone(boneName)
-		err = KvArrayToVector3(bonePosParent, &bone.PosParent)
+		if err := KvArrayToVector3(bonePosParent, &bone.PosParent); err != nil {
+			return nil, fmt.Errorf("error while decoding bone parent position: <%w>", err)
+		}
+		if err := KvArrayToQuaternion(boneRotParent, &bone.RotParent); err != nil {
+			return nil, fmt.Errorf("error while decoding bone parent rotation: <%w>", err)
+		}
 
 	}
 
