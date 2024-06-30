@@ -109,12 +109,8 @@ func (m *Model) initSkeleton() (*Skeleton, error) {
 		if err != nil {
 			return nil, fmt.Errorf("can't get bone id: %d <%w>", i, err)
 		}
-		boneParent, ok := boneParentArray[i].(kv3.Kv3Value)
-		if !ok {
-			return nil, errors.New("bone parent is not a value")
-		}
 
-		p := boneParent.(int32)
+		p := boneParentArray[i].(int32)
 		if p != -1 {
 			parentBone, err := s.GetBoneById(int(p))
 			if err != nil {
