@@ -55,7 +55,9 @@ func TestModel(t *testing.T) {
 	model := model.NewModel()
 	model.SetFile(file)
 
-	log.Println(model.GetSkeleton())
+	skel, _ := model.GetSkeleton()
+
+	log.Println(skel.GetBones())
 }
 
 /*

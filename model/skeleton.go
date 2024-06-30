@@ -53,7 +53,7 @@ func (s *Skeleton) String() string {
 }
 
 func (s *Skeleton) GetBones() []*Bone {
-	var b []*Bone
+	b := make([]*Bone, len(s.bones))
 	copy(b, s.bones)
 	return b
 }
