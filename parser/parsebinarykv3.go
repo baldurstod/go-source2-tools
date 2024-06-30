@@ -42,9 +42,6 @@ func ParseKv3(b []byte, version int, singleByteCount uint32, quadByteCount uint3
 			compressedEnd := blobOffset + uncompressedLength
 			uncompressedBlobSizeReader = bytes.NewReader(b[blobOffset : blobOffset+uncompressedLength])
 			compressedBlobSizeReader = bytes.NewReader(b[compressedEnd+4 : compressedEnd+4+blobCount*2])
-
-			log.Println(uncompressedBlobSizeReader, compressedBlobSizeReader)
-
 		} else {
 			if uncompressedBlobReader != nil {
 				uncompressedBlobSizeReader = bytes.NewReader(b[blobEnd-blobCount*4 : blobEnd])
@@ -264,7 +261,6 @@ func parseBinaryKv3Element(context *parseKv3Context, quadReader *bytes.Reader, e
 				//let decompressBuffer = new ArrayBuffer(uncompressedBlobSize);
 
 				end := context.decompressOffset + uncompressedBlobSize
-				log.Println("decompressOffset", context.decompressOffset, end, compressionFrameSize, compressedBlobSize, uncompressedBlobSize)
 				var decompressArray = decompressBlobBuffer[context.decompressOffset:end]
 				var suboffset = uint32(0)
 				for {
@@ -274,10 +270,8 @@ func parseBinaryKv3Element(context *parseKv3Context, quadReader *bytes.Reader, e
 						return nil, fmt.Errorf("failed to read block lz4 source in parseBinaryKv3Element: <%w>", err)
 					}
 
-					log.Println("suboffset", suboffset, uncompressedBlobSize, compressionFrameSize)
 					var decompressArray2 = decompressArray[suboffset:uncompressedBlobSize]
 					dict := decompressBlobBuffer[:context.decompressOffset]
-					log.Println("decompressArray2", suboffset, uncompressedBlobSize, len(decompressArray2))
 					if uncompressedBlobSize > uint32(compressionFrameSize) {
 						uncompressedFrameSize, err := lz4.UncompressBlockWithDict(src, decompressArray2, dict)
 

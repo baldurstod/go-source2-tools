@@ -273,6 +273,7 @@ func parseDATA(context *parseContext, block *source2.FileBlock) error {
 }
 
 func parseDATAVKV3(context *parseContext, block *source2.FileBlock) error {
+	panic("code parseDATAVKV3")
 	return nil
 }
 func parseDataKV3(context *parseContext, block *source2.FileBlock, version int) error {

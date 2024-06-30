@@ -3,7 +3,6 @@ package model
 import (
 	"errors"
 	"fmt"
-	"log"
 
 	"github.com/baldurstod/go-source2-tools"
 	"github.com/baldurstod/go-source2-tools/kv3"
@@ -42,8 +41,9 @@ func (m *Model) initSkeleton() (*Skeleton, error) {
 	}
 
 	skeleton, err := m.file.GetBlockStruct("DATA.m_modelSkeleton")
-	log.Println(skeleton, err)
-	log.Println(skeleton.(*kv3.Kv3Element).GetAttribute("m_boneName"), err)
+	if err != nil {
+		return nil, errors.New("can't find m_modelSkeleton attribute")
+	}
 
 	boneNames := skeleton.(*kv3.Kv3Element).GetAttribute("m_boneName")
 	bonePosParents := skeleton.(*kv3.Kv3Element).GetAttribute("m_bonePosParent")
@@ -51,10 +51,8 @@ func (m *Model) initSkeleton() (*Skeleton, error) {
 	boneParents := skeleton.(*kv3.Kv3Element).GetAttribute("m_nParent")
 
 	if boneNames == nil || bonePosParents == nil || boneRotParents == nil || boneParents == nil {
-		return nil, errors.New("can't find m_modelSkeleton attributes")
+		return nil, errors.New("can't find m_modelSkeleton sub attributes")
 	}
-
-	log.Println(boneNames)
 
 	var boneNamesArray []kv3.Kv3Value
 	var bonePosParentArray []kv3.Kv3Value
