@@ -103,6 +103,28 @@ func (m *Model) initSkeleton() (*Skeleton, error) {
 		if err := KvArrayToQuaternion(boneRotParent, &bone.RotParent); err != nil {
 			return nil, fmt.Errorf("error while decoding bone parent rotation: <%w>", err)
 		}
+	}
+
+	// Phase 2: parenting
+	for i := 0; i < len(boneNamesArray); i++ {
+		bone, err := s.GetBoneById(i)
+		if err != nil {
+			return nil, fmt.Errorf("can't get bone id: %d <%w>", i, err)
+		}
+		boneParent, ok := boneParentArray[i].(kv3.Kv3Value)
+		if !ok {
+			return nil, errors.New("bone parent is not a value")
+		}
+
+		p := boneParent.(int32)
+		if p != -1 {
+			parentBone, err := s.GetBoneById(int(p))
+			if err != nil {
+				return nil, fmt.Errorf("can't get parent bone id: %d <%w>", p, err)
+			}
+
+			bone.ParentBone = parentBone
+		}
 
 	}
 
