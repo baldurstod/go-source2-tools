@@ -51,3 +51,9 @@ func (s *Skeleton) GetBoneByName(name string) (*Bone, error) {
 func (s *Skeleton) String() string {
 	return fmt.Sprint(s.bones)
 }
+
+func (s *Skeleton) GetBones() []*Bone {
+	var b []*Bone
+	copy(b, s.bones)
+	return b
+}

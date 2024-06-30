@@ -29,9 +29,6 @@ func TestFiles(t *testing.T) {
 	if err != nil {
 		log.Println(err)
 		t.Error(err)
-	} else {
-		//log.Println(file)
-		//log.Println(file.GetBlock("DATA"))
 	}
 }
 
