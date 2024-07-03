@@ -3,8 +3,10 @@ package model
 import (
 	"errors"
 	"fmt"
+	"log"
 
 	"github.com/baldurstod/go-source2-tools"
+	"github.com/baldurstod/go-source2-tools/animations"
 	"github.com/baldurstod/go-source2-tools/kv3"
 )
 
@@ -123,4 +125,19 @@ func (m *Model) initSkeleton() (*Skeleton, error) {
 	}
 
 	return s, nil
+}
+
+func (m *Model) GetSequence(activity string, modifiers map[string]struct{}) error {
+	if m.file == nil {
+		return errors.New("model don't have a file")
+	}
+
+	return nil
+}
+
+func (m *Model) GetAnimationData(animations []animations.AnimationParameter) error {
+	for _, ap := range animations {
+		log.Println(ap)
+	}
+	return nil
 }

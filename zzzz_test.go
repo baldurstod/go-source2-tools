@@ -57,6 +57,8 @@ func TestModel(t *testing.T) {
 
 	skel, _ := model.GetSkeleton()
 
+	model.GetAnimationData(nil)
+
 	log.Println(skel.GetBones())
 }
 
