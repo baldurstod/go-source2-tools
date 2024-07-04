@@ -67,6 +67,19 @@ func (f *File) GetBlock(resType string) *FileBlock {
 	return f.Blocks[resType]
 }
 
+func (f *File) GetBlockStructAsKv3Element(path string) (*kv3.Kv3Element, error) {
+	res, err := f.GetBlockStruct(path)
+	if err != nil {
+		return nil, err
+	}
+
+	elem, ok := res.(*kv3.Kv3Element)
+	if !ok {
+		return nil, errors.New("unable to convert value to Kv3Element")
+	}
+	return elem, nil
+}
+
 func (f *File) GetBlockStruct(path string) (any, error) {
 	v := strings.Split(path, ".")
 
