@@ -22,6 +22,17 @@ func (e *Kv3Element) AddAttribute(name string, value any) {
 func (e *Kv3Element) GetAttribute(name string) any {
 	return e.attributes[name]
 }
+
+func (e *Kv3Element) GetAttributes() []string {
+	attributes := make([]string, 0, len(e.attributes))
+
+	for k, _ := range e.attributes {
+		attributes = append(attributes, k)
+	}
+
+	return attributes
+}
+
 func (e *Kv3Element) GetFloat32Attribute(name string) float32 {
 	value, ok := e.attributes[name]
 	if !ok {
