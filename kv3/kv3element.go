@@ -22,6 +22,19 @@ func (e *Kv3Element) AddAttribute(name string, value any) {
 func (e *Kv3Element) GetAttribute(name string) any {
 	return e.attributes[name]
 }
+func (e *Kv3Element) GetFloat32Attribute(name string) float32 {
+	value, ok := e.attributes[name]
+	if !ok {
+		return 0
+	}
+
+	f, ok := value.(float32)
+	if !ok {
+		return 0
+	}
+
+	return f
+}
 
 func (e *Kv3Element) String() string {
 	var ret string
