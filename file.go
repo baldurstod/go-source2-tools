@@ -132,7 +132,7 @@ func (fb *FileBlockDATA) String() string {
 func (data *FileBlockDATA) GetBlockStruct(path []string) (any, error) {
 	//panic("TODO")
 	if len(path) < 1 {
-		return nil, nil
+		return data.KeyValue, nil
 	}
 
 	current := data.KeyValue
