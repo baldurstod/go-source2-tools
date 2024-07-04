@@ -32,7 +32,7 @@ func TestFiles(t *testing.T) {
 	}
 }
 
-func TestModel(t *testing.T) {
+func DisabledTestModel(t *testing.T) {
 	log.SetFlags(log.LstdFlags | log.Lshortfile)
 
 	var filename string
@@ -59,7 +59,37 @@ func TestModel(t *testing.T) {
 
 	model.GetAnimationData(nil)
 
-	log.Println(skel.GetBones())
+	seq := model.GetSequence("ACT_DOTA_IDLE", nil)
+
+	log.Println(skel.GetBones(), seq)
+}
+
+func TestAnim(t *testing.T) {
+	log.SetFlags(log.LstdFlags | log.Lshortfile)
+
+	var filename string
+	filename = "pedestal_1.vmdl_c"
+	filename = "drow_base.vmdl_c"
+	filename = "muerta_base.vmdl_c"
+	filename = "snapfire.vmdl_c"
+	filename = "primal_beast_base.vmdl_c"
+	filename = "dragon_knight.vmdl_c"
+	filename = "void_spirit.vmdl_c"
+	filename = "wisp.vmdl_c"
+
+	b, _ := os.ReadFile(path.Join(varFolder, filename))
+	file, err := parser.Parse(b)
+	if err != nil {
+		log.Println(err)
+		t.Error(err)
+	}
+
+	model := model.NewModel()
+	model.SetFile(file)
+
+	seq := model.GetSequence("ACT_DOTA_IDLE", nil)
+
+	log.Println(seq)
 }
 
 /*

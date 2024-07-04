@@ -11,8 +11,9 @@ import (
 )
 
 type Model struct {
-	file     *source2.File
-	skeleton *Skeleton
+	file                 *source2.File
+	skeleton             *Skeleton
+	sequencesInitialized bool
 }
 
 func NewModel() *Model {
@@ -128,6 +129,10 @@ func (m *Model) initSkeleton() (*Skeleton, error) {
 }
 
 func (m *Model) GetSequence(activity string, modifiers map[string]struct{}) error {
+	if !m.sequencesInitialized {
+		m.initSequences()
+	}
+
 	if m.file == nil {
 		return errors.New("model don't have a file")
 	}
@@ -139,5 +144,9 @@ func (m *Model) GetAnimationData(animations []animations.AnimationParameter) err
 	for _, ap := range animations {
 		log.Println(ap)
 	}
+	return nil
+}
+
+func (m *Model) initSequences() error {
 	return nil
 }

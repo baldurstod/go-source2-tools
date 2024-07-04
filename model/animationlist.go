@@ -1,4 +1,4 @@
-package animations
+package model
 
 type AnimationList struct {
 	Sequences map[*Sequence]struct{}
