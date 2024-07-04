@@ -33,18 +33,32 @@ func (e *Kv3Element) GetAttributes() []string {
 	return attributes
 }
 
-func (e *Kv3Element) GetFloat32Attribute(name string) float32 {
+func (e *Kv3Element) GetFloat32Attribute(name string) (float32, bool) {
 	value, ok := e.attributes[name]
 	if !ok {
-		return 0
+		return 0, false
 	}
 
 	f, ok := value.(float32)
 	if !ok {
-		return 0
+		return 0, false
 	}
 
-	return f
+	return f, true
+}
+
+func (e *Kv3Element) GetKv3ValueArrayAttribute(name string) ([]Kv3Value, bool) {
+	value, ok := e.attributes[name]
+	if !ok {
+		return make([]Kv3Value, 0), false
+	}
+
+	v, ok := value.([]Kv3Value)
+	if !ok {
+		return make([]Kv3Value, 0), false
+	}
+
+	return v, true
 }
 
 func (e *Kv3Element) String() string {
