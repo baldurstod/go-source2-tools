@@ -19,7 +19,12 @@ func newSequence(owner *Model, datas *kv3.Kv3Element) *Sequence {
 		ActivityModifiers: make(map[string]struct{}),
 	}
 
-	seq.fps = datas.GetFloat32Attribute("fps")
+	var ok bool
+	seq.Name, _ = datas.GetStringAttribute("m_name")
+	seq.fps, ok = datas.GetFloat32Attribute("fps")
+	if !ok {
+		seq.fps = 30
+	}
 
 	return seq
 }

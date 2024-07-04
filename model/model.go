@@ -13,11 +13,14 @@ import (
 type Model struct {
 	file                 *source2.File
 	skeleton             *Skeleton
+	sequences            map[string]*Sequence
 	sequencesInitialized bool
 }
 
 func NewModel() *Model {
-	return &Model{}
+	return &Model{
+		sequences: make(map[string]*Sequence),
+	}
 }
 
 func (m *Model) SetFile(f *source2.File) {
@@ -148,5 +151,29 @@ func (m *Model) GetAnimationData(animations []animations.AnimationParameter) err
 }
 
 func (m *Model) initSequences() error {
+	anim, err := m.file.GetBlockStructAsKv3Element("ANIM")
+	if err != nil {
+		return errors.New("can't find m_modelSkeleton attribute")
+	}
+
+	animArray, _ := anim.GetKv3ValueArrayAttribute("m_animArray")
+
+	for _, v := range animArray {
+		//log.Println(v)
+		seq := newSequence(m, v.(*kv3.Kv3Element))
+		m.sequences[seq.Name] = seq
+		log.Println(seq.Name)
+		break
+	}
+
+	/*
+		bonePosParents := skeleton.(*kv3.Kv3Element).GetAttribute("m_bonePosParent")
+		boneRotParents := skeleton.(*kv3.Kv3Element).GetAttribute("m_boneRotParent")
+		boneParents := skeleton.(*kv3.Kv3Element).GetAttribute("m_nParent")
+	*/
+
+	log.Println(anim.GetAttributes())
+	//log.Println(m.sequences)
+
 	return nil
 }
