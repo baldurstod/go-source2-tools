@@ -90,6 +90,7 @@ func TestAnim(t *testing.T) {
 	seq := model.GetSequence("ACT_DOTA_IDLE", nil)
 
 	log.Println(seq)
+	//log.Println(seq.GetFps())
 }
 
 /*

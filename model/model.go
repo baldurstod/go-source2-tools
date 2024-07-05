@@ -162,8 +162,7 @@ func (m *Model) initSequences() error {
 		//log.Println(v)
 		seq := newSequence(m, v.(*kv3.Kv3Element))
 		m.sequences[seq.Name] = seq
-		log.Println(seq.Name)
-		break
+		//log.Println(seq.Name)
 	}
 
 	/*
