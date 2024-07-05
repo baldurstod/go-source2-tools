@@ -4,22 +4,26 @@ import (
 	"github.com/baldurstod/go-source2-tools/kv3"
 )
 
+type IAnimationResource interface{}
+
 type Sequence struct {
 	Name              string
 	owner             *Model
 	datas             *kv3.Kv3Element
 	fps               float32
-	FrameCount        int32
-	lastFrame         int32
+	FrameCount        uint32
+	lastFrame         uint32
 	Activity          string
 	ActivityModifiers map[string]struct{}
 	frameblockArray   []kv3.Kv3Value
+	resource          IAnimationResource
 }
 
-func newSequence(owner *Model, datas *kv3.Kv3Element) *Sequence {
+func newSequence(owner *Model, datas *kv3.Kv3Element, resource IAnimationResource) *Sequence {
 	seq := &Sequence{
 		owner:             owner,
 		datas:             datas,
+		resource:          resource,
 		ActivityModifiers: make(map[string]struct{}),
 	}
 
@@ -33,7 +37,11 @@ func newSequence(owner *Model, datas *kv3.Kv3Element) *Sequence {
 	pData := datas.GetKv3ElementAttribute("m_pData")
 	if pData != nil {
 		//log.Println(pData)
-		seq.FrameCount, _ = pData.GetInt32Attribute("m_nFrames")
+		frameCount, _ := pData.GetInt32Attribute("m_nFrames")
+		seq.FrameCount = uint32(frameCount)
+		if frameCount > 0 {
+			seq.lastFrame = seq.FrameCount - 1
+		}
 		seq.frameblockArray, _ = pData.GetKv3ValueArrayAttribute("m_frameblockArray")
 
 		///animArray, _ := anim.GetKv3ValueArrayAttribute("m_animArray")
@@ -74,6 +82,19 @@ func (seq *Sequence) GetFps() float32 {
 	return seq.GetActualSequence().fps
 }
 
-func (seq *Sequence) GetLastFrame() int32 {
+func (seq *Sequence) GetLastFrame() uint32 {
 	return seq.GetActualSequence().lastFrame
+}
+
+func (seq *Sequence) GetFrame(frameIndex uint32) error {
+	actualSequence := seq.GetActualSequence()
+	if actualSequence != seq {
+		return actualSequence.GetFrame(frameIndex)
+	}
+
+	if frameIndex > seq.lastFrame {
+		frameIndex = 0
+	}
+
+	return nil
 }
