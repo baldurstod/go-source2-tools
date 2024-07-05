@@ -3,11 +3,13 @@ package parser
 import (
 	"bytes"
 	"encoding/binary"
+	"errors"
 	"fmt"
 	"io"
 	"log"
 
 	"github.com/baldurstod/go-source2-tools"
+	"github.com/baldurstod/go-source2-tools/repository"
 	"github.com/klauspost/compress/zstd"
 	"github.com/pierrec/lz4/v4"
 )
@@ -18,19 +20,29 @@ type parseContext struct {
 	b      []byte
 }
 
-func newParseContext(b []byte) *parseContext {
+func newParseContext(repo string, b []byte) *parseContext {
 	return &parseContext{
 		reader: bytes.NewReader(b),
-		file:   source2.NewFile(),
+		file:   source2.NewFile(repo),
 		b:      b,
 	}
 }
 
-func Parse(b []byte) (*source2.File, error) {
-	context := newParseContext(b)
+func Parse(repo string, path string) (*source2.File, error) {
+	reader := repository.GetRepository(repo)
+	if reader == nil {
+		return nil, errors.New("unknown repository")
+	}
+
+	b, err := reader.ReadFile(path)
+	if err != nil {
+		return nil, errors.New("unable to read file " + path)
+	}
+
+	context := newParseContext(repo, b)
 
 	log.Println("Start parsing file")
-	err := parseHeader(context)
+	err = parseHeader(context)
 	if err != nil {
 		return nil, err
 	}
@@ -273,9 +285,10 @@ func parseDATA(context *parseContext, block *source2.FileBlock) error {
 }
 
 func parseDATAVKV3(context *parseContext, block *source2.FileBlock) error {
-	panic("code parseDATAVKV3")
+	log.Println("Code parseDATAVKV3", context, block)
 	return nil
 }
+
 func parseDataKV3(context *parseContext, block *source2.FileBlock, version int) error {
 	reader := context.reader
 	reader.Seek(int64(block.Offset+4+16), io.SeekStart)

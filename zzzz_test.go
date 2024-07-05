@@ -2,8 +2,6 @@ package source2_test
 
 import (
 	"log"
-	"os"
-	"path"
 	"testing"
 
 	"github.com/baldurstod/go-source2-tools/model"
@@ -30,8 +28,8 @@ func DisabledTestFiles(t *testing.T) {
 	filename = "dragon_knight.vmdl_c"
 	filename = "void_spirit.vmdl_c"
 
-	b, _ := os.ReadFile(path.Join(varFolder, filename))
-	_, err := parser.Parse(b)
+	//b, _ := os.ReadFile(path.Join(varFolder, filename))
+	_, err := parser.Parse("dota2", filename)
 	if err != nil {
 		log.Println(err)
 		t.Error(err)
@@ -51,8 +49,8 @@ func DisabledTestModel(t *testing.T) {
 	filename = "void_spirit.vmdl_c"
 	filename = "wisp.vmdl_c"
 
-	b, _ := os.ReadFile(path.Join(varFolder, filename))
-	file, err := parser.Parse(b)
+	//b, _ := os.ReadFile(path.Join(varFolder, filename))
+	file, err := parser.Parse("dota2", filename)
 	if err != nil {
 		log.Println(err)
 		t.Error(err)
@@ -82,13 +80,14 @@ func TestAnim(t *testing.T) {
 	filename = "primal_beast_base.vmdl_c"
 	filename = "dragon_knight.vmdl_c"
 	filename = "void_spirit.vmdl_c"
-	filename = "wisp.vmdl_c"
+	filename = "models/heroes/wisp/wisp.vmdl_c"
 
-	b, _ := os.ReadFile(path.Join(varFolder, filename))
-	file, err := parser.Parse(b)
+	//b, _ := os.ReadFile(path.Join(varFolder, filename))
+	file, err := parser.Parse("dota2", filename)
 	if err != nil {
 		log.Println(err)
 		t.Error(err)
+		return
 	}
 
 	model := model.NewModel()

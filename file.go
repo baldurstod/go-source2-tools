@@ -8,6 +8,7 @@ import (
 )
 
 type File struct {
+	repo        string
 	FileLength  uint32
 	VersionMaj  uint16
 	VersionMin  uint16
@@ -15,8 +16,9 @@ type File struct {
 	BlocksArray []*FileBlock
 }
 
-func NewFile() *File {
+func NewFile(repo string) *File {
 	return &File{
+		repo:        repo,
 		Blocks:      make(map[string]*FileBlock),
 		BlocksArray: make([]*FileBlock, 0),
 	}
