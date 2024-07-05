@@ -26,7 +26,7 @@ func (e *Kv3Element) GetAttribute(name string) any {
 func (e *Kv3Element) GetAttributes() []string {
 	attributes := make([]string, 0, len(e.attributes))
 
-	for k, _ := range e.attributes {
+	for k := range e.attributes {
 		attributes = append(attributes, k)
 	}
 
@@ -45,6 +45,22 @@ func (e *Kv3Element) GetStringAttribute(name string) (string, bool) {
 	}
 
 	return f, true
+}
+
+func (e *Kv3Element) GetInt32Attribute(name string) (int32, bool) {
+	value, ok := e.attributes[name]
+	if !ok {
+		return 0, false
+	}
+
+	switch v := value.(type) {
+	case int:
+		return int32(v), true
+	case int32:
+		return v, true
+	default:
+		return 0, false
+	}
 }
 
 func (e *Kv3Element) GetFloat32Attribute(name string) (float32, bool) {
