@@ -1,11 +1,13 @@
 package repository
 
-var repositories = func() map[string]string { return make(map[string]string) }()
+import "io/fs"
 
-func AddRepository(key string, path string) {
-	repositories[key] = path
+var repositories = func() map[string]fs.ReadFileFS { return make(map[string]fs.ReadFileFS) }()
+
+func AddRepository(key string, fs fs.ReadFileFS) {
+	repositories[key] = fs
 }
 
-func GetRepository(key string) string {
+func GetRepository(key string) fs.ReadFileFS {
 	return repositories[key]
 }

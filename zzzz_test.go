@@ -8,11 +8,17 @@ import (
 
 	"github.com/baldurstod/go-source2-tools/model"
 	"github.com/baldurstod/go-source2-tools/parser"
+	"github.com/baldurstod/go-source2-tools/repository"
+	"github.com/baldurstod/go-source2-tools/vpk"
 )
 
 const varFolder = "./var/"
 
-func TestFiles(t *testing.T) {
+func initRepo() {
+	repository.AddRepository("dota2", vpk.NewVpkFS("R:\\SteamLibrary\\steamapps\\common\\dota 2 beta\\game\\dota\\pak01_dir.vpk"))
+}
+
+func DisabledTestFiles(t *testing.T) {
 	log.SetFlags(log.LstdFlags | log.Lshortfile)
 
 	var filename string
@@ -66,6 +72,7 @@ func DisabledTestModel(t *testing.T) {
 
 func TestAnim(t *testing.T) {
 	log.SetFlags(log.LstdFlags | log.Lshortfile)
+	initRepo()
 
 	var filename string
 	filename = "pedestal_1.vmdl_c"
@@ -91,6 +98,18 @@ func TestAnim(t *testing.T) {
 
 	log.Println(seq)
 	//log.Println(seq.GetFps())
+}
+
+func TestRepo(t *testing.T) {
+	log.SetFlags(log.LstdFlags | log.Lshortfile)
+	initRepo()
+	repo := repository.GetRepository("dota2")
+	if repo == nil {
+		t.Error("repo not found")
+	}
+
+	buf, err := repo.ReadFile("models/heroes/tiny_01/tiny_01.vmdl_c")
+	log.Println(buf[0:200], err)
 }
 
 /*
