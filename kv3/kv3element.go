@@ -75,6 +75,20 @@ func (e *Kv3Element) GetKv3ValueArrayAttribute(name string) ([]Kv3Value, bool) {
 	return v, true
 }
 
+func (e *Kv3Element) GetKv3ElementAttribute(name string) *Kv3Element {
+	value, ok := e.attributes[name]
+	if !ok {
+		return nil
+	}
+
+	v, ok := value.(*Kv3Element)
+	if !ok {
+		return nil
+	}
+
+	return v
+}
+
 func (e *Kv3Element) String() string {
 	var ret string
 
