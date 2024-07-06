@@ -36,23 +36,10 @@ func (fs *VpkFS) init() error {
 }
 
 func (fs *VpkFS) Open(name string) (fs.File, error) {
-	/*
-		pak, err := vpk.OpenDir(fs.path)
-
-		if err != nil {
-			return nil, err
-		}
-	*/
 	return nil, nil
 }
 
 func (fs *VpkFS) ReadFile(path string) ([]byte, error) {
-	/*
-		for _, file := range fs.vpk.Entries() {
-			// Print the file size and full file name
-			fmt.Printf("% 8d %s\n", file.Length(), file.Filename())
-		}*/
-
 	entry, ok := fs.vpk.Find(path)
 
 	if !ok {
