@@ -10,6 +10,7 @@ type Bone struct {
 	PosParent   vector.Vector3[float32]
 	RotParent   vector.Quaternion[float32]
 	ScaleParent float32
+	Flags       uint64
 }
 
 func NewBone(name string) *Bone {
