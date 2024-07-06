@@ -82,6 +82,19 @@ func (f *File) GetBlockStructAsKv3Element(path string) (*kv3.Kv3Element, error) 
 	return elem, nil
 }
 
+func (f *File) GetBlockStructAsKv3ValueArray(path string) ([]kv3.Kv3Value, error) {
+	res, err := f.GetBlockStruct(path)
+	if err != nil {
+		return nil, err
+	}
+
+	elem, ok := res.([]kv3.Kv3Value)
+	if !ok {
+		return nil, errors.New("unable to convert value to array of Kv3Value")
+	}
+	return elem, nil
+}
+
 func (f *File) GetBlockStruct(path string) (any, error) {
 	v := strings.Split(path, ".")
 
