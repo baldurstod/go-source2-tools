@@ -15,11 +15,14 @@ type Model struct {
 	skeleton             *Skeleton
 	sequences            map[string]*Sequence
 	sequencesInitialized bool
+	internalAnimGroup    *AnimGroup
+	animGroups           map[*AnimGroup]struct{}
 }
 
 func NewModel() *Model {
 	return &Model{
-		sequences: make(map[string]*Sequence),
+		sequences:  make(map[string]*Sequence),
+		animGroups: make(map[*AnimGroup]struct{}),
 	}
 }
 
@@ -153,7 +156,7 @@ func (m *Model) GetAnimationData(animations []animations.AnimationParameter) err
 func (m *Model) initSequences() error {
 	anim, err := m.file.GetBlockStructAsKv3Element("ANIM")
 	if err != nil {
-		return errors.New("can't find m_modelSkeleton attribute")
+		return fmt.Errorf("can't find ANIM block: <%w>", err)
 	}
 
 	animArray, _ := anim.GetKv3ValueArrayAttribute("m_animArray")
@@ -173,6 +176,50 @@ func (m *Model) initSequences() error {
 
 	log.Println(anim.GetAttributes())
 	//log.Println(m.sequences)
+
+	err = m.initInternalAnimGroup()
+	if err != nil {
+		return fmt.Errorf("error while initializing model sequences: <%w>", err)
+	}
+
+	return nil
+}
+
+func (m *Model) initInternalAnimGroup() error {
+	localAnimArray, err := m.file.GetBlockStructAsKv3ValueArray("AGRP.m_localHAnimArray")
+	if err != nil {
+		return fmt.Errorf("can't get local anim array while initializing internal anim group: <%w>", err)
+	}
+
+	decodeKey, err := m.file.GetBlockStructAsKv3Element("AGRP.m_decodeKey")
+	if err != nil {
+		return fmt.Errorf("can't get decode key while initializing internal anim group: <%w>", err)
+	}
+
+	m.internalAnimGroup = newAnimGroup(m, localAnimArray, decodeKey)
+
+	log.Println(localAnimArray, decodeKey, m.internalAnimGroup)
+
+	anim, err := m.file.GetBlockStructAsKv3Element("ANIM")
+	if err != nil {
+		return fmt.Errorf("can't find ANIM block: <%w>", err)
+	}
+
+	loadedAnim := newAnimation(m.internalAnimGroup)
+	//let anims = sourceFile.getBlockStruct('ANIM.keyValue.root');
+
+	/*
+		let anims = sourceFile.getBlockStruct('ANIM.keyValue.root');
+		if (anims) {
+			let loadedAnim = new Source2Animation(animGroup, '');
+			loadedAnim.setAnimDatas(anims);
+			animGroup._changemyname = animGroup._changemyname || [];
+			animGroup._changemyname.push(loadedAnim);
+		}
+		this.animGroups.add(animGroup);
+	*/
+	log.Println(anim, loadedAnim)
+	m.animGroups[m.internalAnimGroup] = struct{}{}
 
 	return nil
 }
