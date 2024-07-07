@@ -7,14 +7,7 @@ import (
 	"github.com/baldurstod/go-source2-tools/model"
 	"github.com/baldurstod/go-source2-tools/parser"
 	"github.com/baldurstod/go-source2-tools/repository"
-	"github.com/baldurstod/go-source2-tools/vpk"
 )
-
-const varFolder = "./var/"
-
-func initRepo() {
-	repository.AddRepository("dota2", vpk.NewVpkFS("R:\\SteamLibrary\\steamapps\\common\\dota 2 beta\\game\\dota\\pak01_dir.vpk"))
-}
 
 func DisabledTestFiles(t *testing.T) {
 	log.SetFlags(log.LstdFlags | log.Lshortfile)
