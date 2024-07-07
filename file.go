@@ -129,11 +129,11 @@ func (fb *FileBlockRERL) AddExternalFile(handle string, filename string) {
 }
 
 func (rerl *FileBlockRERL) String() string {
-	panic("TODO")
+	return "Code String() for FileBlockRERL\n"
 }
 
 func (rerl *FileBlockRERL) GetBlockStruct(path []string) (any, error) {
-	panic("TODO")
+	panic("FileBlockRERL GetBlockStruct\n")
 }
 
 type FileBlockContent interface {
@@ -220,9 +220,9 @@ func NewFileBlockMBUF() *FileBlockMBUF {
 }
 
 func (mbuf *FileBlockMBUF) String() string {
-	panic("TODO")
+	panic("FileBlockMBUF String")
 }
 
 func (mbuf *FileBlockMBUF) GetBlockStruct(path []string) (any, error) {
-	panic("TODO")
+	panic("FileBlockMBUF GetBlockStruct")
 }
