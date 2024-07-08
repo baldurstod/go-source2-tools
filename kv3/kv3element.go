@@ -107,10 +107,10 @@ func (e *Kv3Element) GetKv3ElementAttribute(name string) *Kv3Element {
 }
 
 func (e *Kv3Element) String() string {
-	return e.string(0)
+	return e.StringIndent(0)
 }
 
-func (e *Kv3Element) string(tabs int) string {
+func (e *Kv3Element) StringIndent(tabs int) string {
 	var ret string
 
 	for k, v := range e.attributes {
@@ -170,7 +170,7 @@ func valueToString(v any, tabs int) string {
 		return ret
 	case *Kv3Element:
 		ret := "{\n"
-		ret += v.string(tabs + 1)
+		ret += v.StringIndent(tabs + 1)
 		ret += strings.Repeat("\t", tabs) + "}"
 		return ret
 	default:

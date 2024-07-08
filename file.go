@@ -151,7 +151,7 @@ func NewFileBlockDATA() *FileBlockDATA {
 
 func (fb *FileBlockDATA) String() string {
 	if fb.KeyValue != nil {
-		return fb.KeyValue.String()
+		return fb.KeyValue.StringIndent(1)
 	} else {
 		return ""
 	}
