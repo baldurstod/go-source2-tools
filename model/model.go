@@ -15,8 +15,8 @@ type Model struct {
 	skeleton             *Skeleton
 	sequences            map[string]*Sequence
 	sequencesInitialized bool
-	internalAnimGroup    *AnimGroup
-	animGroups           map[*AnimGroup]struct{}
+	//	internalAnimGroup    *AnimGroup
+	animGroups map[*AnimGroup]struct{}
 }
 
 func NewModel() *Model {
@@ -193,19 +193,8 @@ func (m *Model) initSequences() error {
 }
 
 func (m *Model) initInternalAnimGroup() error {
-	localAnimArray, err := m.file.GetBlockStructAsKv3ValueArray("AGRP.m_localHAnimArray")
-	if err != nil {
-		return fmt.Errorf("can't get local anim array while initializing internal anim group: <%w>", err)
-	}
-
-	decodeKey, err := m.file.GetBlockStructAsKv3Element("AGRP.m_decodeKey")
-	if err != nil {
-		return fmt.Errorf("can't get decode key while initializing internal anim group: <%w>", err)
-	}
-
-	m.internalAnimGroup = newAnimGroup(m, localAnimArray, decodeKey)
-
-	//log.Println(localAnimArray, decodeKey, m.internalAnimGroup)
+	animGroup := newAnimGroup(m)
+	animGroup.initFromFile(m.file)
 
 	animDatas, err := m.file.GetBlockStructAsKv3Element("ANIM")
 	if err != nil {
@@ -216,11 +205,9 @@ func (m *Model) initInternalAnimGroup() error {
 
 	if ok {
 		for _, v := range animArray {
-			anim := newAnimation(m.internalAnimGroup)
-			m.internalAnimGroup.AddAnimation(anim)
+			anim := animGroup.CreateAnimation()
 			anim.setData(v)
 		}
-
 	}
 
 	//let anims = sourceFile.getBlockStruct('ANIM.keyValue.root');
@@ -236,7 +223,7 @@ func (m *Model) initInternalAnimGroup() error {
 		this.animGroups.add(animGroup);
 	*/
 	//log.Println(animDatas)
-	m.animGroups[m.internalAnimGroup] = struct{}{}
+	m.animGroups[animGroup] = struct{}{}
 
 	return nil
 }
