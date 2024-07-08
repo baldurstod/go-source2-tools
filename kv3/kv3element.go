@@ -163,8 +163,13 @@ func valueToString(v any, tabs int) string {
 		return ret
 	case []byte:
 		ret := "["
+		count := 0
 		for _, v2 := range v {
-			ret += "\n" + strings.Repeat("\t", tabs+1) + strconv.Itoa(int(v2)) + ","
+			ret += strconv.Itoa(int(v2)) + ","
+			count++
+			if count > 100 {
+				break
+			}
 		}
 		ret += "\n" + strings.Repeat("\t", tabs) + "]"
 		return ret
