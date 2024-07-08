@@ -136,11 +136,18 @@ func (m *Model) initSkeleton() (*Skeleton, error) {
 
 func (m *Model) GetSequence(activity string, modifiers map[string]struct{}) error {
 	if !m.sequencesInitialized {
-		m.initSequences()
+		err := m.initSequences()
+		if err != nil {
+			return fmt.Errorf("error in getsequence: <%w>", err)
+		}
 	}
 
 	if m.file == nil {
 		return errors.New("model don't have a file")
+	}
+
+	for group := range m.animGroups {
+		return group.GetSequence(activity, modifiers)
 	}
 
 	return nil
@@ -198,14 +205,24 @@ func (m *Model) initInternalAnimGroup() error {
 
 	m.internalAnimGroup = newAnimGroup(m, localAnimArray, decodeKey)
 
-	log.Println(localAnimArray, decodeKey, m.internalAnimGroup)
+	//log.Println(localAnimArray, decodeKey, m.internalAnimGroup)
 
-	anim, err := m.file.GetBlockStructAsKv3Element("ANIM")
+	animDatas, err := m.file.GetBlockStructAsKv3Element("ANIM")
 	if err != nil {
 		return fmt.Errorf("can't find ANIM block: <%w>", err)
 	}
 
-	loadedAnim := newAnimation(m.internalAnimGroup)
+	animArray, ok := animDatas.GetKv3ValueArrayAttribute("m_animArray")
+
+	if ok {
+		for _, v := range animArray {
+			anim := newAnimation(m.internalAnimGroup)
+			m.internalAnimGroup.AddAnimation(anim)
+			anim.setData(v)
+		}
+
+	}
+
 	//let anims = sourceFile.getBlockStruct('ANIM.keyValue.root');
 
 	/*
@@ -218,7 +235,7 @@ func (m *Model) initInternalAnimGroup() error {
 		}
 		this.animGroups.add(animGroup);
 	*/
-	log.Println(anim, loadedAnim)
+	//log.Println(animDatas)
 	m.animGroups[m.internalAnimGroup] = struct{}{}
 
 	return nil
