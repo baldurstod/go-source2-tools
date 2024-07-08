@@ -3,6 +3,7 @@ package kv3
 import (
 	"log"
 	"strconv"
+	"strings"
 )
 
 type Kv3Element struct {
@@ -106,11 +107,15 @@ func (e *Kv3Element) GetKv3ElementAttribute(name string) *Kv3Element {
 }
 
 func (e *Kv3Element) String() string {
+	return e.string(0)
+}
+
+func (e *Kv3Element) string(tabs int) string {
 	var ret string
 
 	for k, v := range e.attributes {
-		ret += k + ":\t"
-		ret += valueToString(v)
+		ret += strings.Repeat("\t", tabs) + k + ": "
+		ret += valueToString(v, tabs)
 		/*switch v := v.(type) {
 		case int32:
 			ret += strconv.Itoa(int(v))
@@ -128,7 +133,7 @@ func (e *Kv3Element) String() string {
 	return ret
 }
 
-func valueToString(v any) string {
+func valueToString(v any, tabs int) string {
 	switch v := v.(type) {
 	case int:
 		return strconv.Itoa(v)
@@ -147,24 +152,27 @@ func valueToString(v any) string {
 	case bool:
 		return strconv.FormatBool(v)
 	case string:
-		return v
+		return "\"" + v + "\""
 	case nil:
 	case []Kv3Value:
 		ret := "["
 		for _, v2 := range v {
-			ret += "\n\t" + valueToString(v2) + ","
+			ret += "\n" + strings.Repeat("\t", tabs+1) + valueToString(v2, tabs+1) + ","
 		}
-		ret += "\n]"
+		ret += "\n" + strings.Repeat("\t", tabs) + "]"
 		return ret
 	case []byte:
 		ret := "["
 		for _, v2 := range v {
-			ret += "\n\t" + strconv.Itoa(int(v2)) + ","
+			ret += "\n" + strings.Repeat("\t", tabs+1) + strconv.Itoa(int(v2)) + ","
 		}
-		ret += "\n]"
+		ret += "\n" + strings.Repeat("\t", tabs) + "]"
 		return ret
 	case *Kv3Element:
-		return v.String()
+		ret := "{\n"
+		ret += v.string(tabs + 1)
+		ret += strings.Repeat("\t", tabs) + "}"
+		return ret
 	default:
 		log.Println("Unknown type:", v)
 	}
