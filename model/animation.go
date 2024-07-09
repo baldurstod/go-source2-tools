@@ -9,7 +9,7 @@ import (
 type Animation struct {
 	group           *AnimGroup
 	Name            string
-	fps             float32
+	fps             float64
 	FrameCount      int32
 	frameblockArray []kv3.Kv3Value
 }
@@ -27,7 +27,7 @@ func (anim *Animation) initFromDatas(datas *kv3.Kv3Element) error {
 		return errors.New("")
 	}
 
-	anim.fps, ok = datas.GetFloat32Attribute("fps")
+	anim.fps, ok = datas.GetFloatAttribute("fps")
 	if !ok {
 		anim.fps = 30 //TODO: not sure if we should set a default value
 	}
@@ -41,10 +41,10 @@ func (anim *Animation) initFromDatas(datas *kv3.Kv3Element) error {
 	return nil
 }
 
-func (anim *Animation) GetFps() float32 {
+func (anim *Animation) GetFps() float64 {
 	return anim.fps
 }
 
-func (anim *Animation) GetDuration() float32 {
-	return float32(anim.FrameCount-1) / anim.fps
+func (anim *Animation) GetDuration() float64 {
+	return float64(anim.FrameCount-1) / anim.fps
 }
