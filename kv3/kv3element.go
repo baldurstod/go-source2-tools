@@ -64,6 +64,22 @@ func (e *Kv3Element) GetInt32Attribute(name string) (int32, bool) {
 	}
 }
 
+func (e *Kv3Element) GetFloatAttribute(name string) (float64, bool) {
+	value, ok := e.attributes[name]
+	if !ok {
+		return 0, false
+	}
+
+	switch v := value.(type) {
+	case float32:
+		return float64(v), true
+	case float64:
+		return v, true
+	default:
+		return 0, false
+	}
+}
+
 func (e *Kv3Element) GetFloat32Attribute(name string) (float32, bool) {
 	value, ok := e.attributes[name]
 	if !ok {
@@ -71,6 +87,20 @@ func (e *Kv3Element) GetFloat32Attribute(name string) (float32, bool) {
 	}
 
 	f, ok := value.(float32)
+	if !ok {
+		return 0, false
+	}
+
+	return f, true
+}
+
+func (e *Kv3Element) GetFloat64Attribute(name string) (float64, bool) {
+	value, ok := e.attributes[name]
+	if !ok {
+		return 0, false
+	}
+
+	f, ok := value.(float64)
 	if !ok {
 		return 0, false
 	}
