@@ -200,12 +200,12 @@ func (m *Model) initSequences() error {
 
 	localS1SeqDescArray, ok := sequences.GetKv3ValueArrayAttribute("m_localS1SeqDescArray")
 	if !ok {
-		return errors.New("Key not found m_localS1SeqDescArray")
+		return errors.New("key not found m_localS1SeqDescArray")
 	}
 
 	localSequenceNameArray, ok := sequences.GetKv3ValueArrayAttribute("m_localSequenceNameArray")
 	if !ok {
-		return errors.New("Key not found m_localSequenceNameArray")
+		return errors.New("key not found m_localSequenceNameArray")
 	}
 	for _, v := range localS1SeqDescArray {
 		seq := newSequence(m)

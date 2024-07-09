@@ -10,8 +10,6 @@ type Sequence struct {
 	Name              string
 	owner             *Model
 	datas             *kv3.Kv3Element
-	FrameCount        uint32
-	lastFrame         uint32
 	Activity          string
 	ActivityModifiers map[string]struct{}
 	animations        []string
@@ -66,19 +64,6 @@ func (seq *Sequence) initFromDatas(datas *kv3.Kv3Element, localSequenceNameArray
 	return nil
 }
 
-func (seq *Sequence) GetActualSequence() *Sequence {
-	fetch := seq.datas.GetKv3ElementAttribute("m_fetch")
-	if fetch == nil {
-		return seq
-	}
-
-	//localReferenceArray := fetch.GetKv3ElementAttribute("m_localReferenceArray")
-	//log.Println(localReferenceArray)
-	panic("code me")
-
-	return seq
-}
-
 func (seq *Sequence) GetFps() float64 {
 	for _, animName := range seq.animations {
 		anim := seq.owner.animations[animName]
@@ -91,17 +76,25 @@ func (seq *Sequence) GetFps() float64 {
 	return 30
 }
 
-func (seq *Sequence) GetLastFrame() uint32 {
-	return seq.GetActualSequence().lastFrame
-}
-
-func (seq *Sequence) GetFrame(frameIndex uint32) error {
-	actualSequence := seq.GetActualSequence()
-	if actualSequence != seq {
-		return actualSequence.GetFrame(frameIndex)
+func (seq *Sequence) GetFrameCount() int {
+	count := 0
+	for _, animName := range seq.animations {
+		anim := seq.owner.animations[animName]
+		if anim != nil {
+			count += int(anim.FrameCount)
+		}
 	}
 
-	if frameIndex > seq.lastFrame {
+	return count
+}
+
+func (seq *Sequence) GetFrame(frameIndex int) error {
+	/*actualSequence := seq.GetActualSequence()
+	if actualSequence != seq {
+		return actualSequence.GetFrame(frameIndex)
+	}*/
+
+	if frameIndex > seq.GetFrameCount() {
 		frameIndex = 0
 	}
 
