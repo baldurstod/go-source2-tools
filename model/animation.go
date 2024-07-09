@@ -11,12 +11,13 @@ type Animation struct {
 	Name            string
 	fps             float64
 	FrameCount      int32
-	frameblockArray []kv3.Kv3Value
+	frameblockArray []*frameBlock
 }
 
 func newAnimation(group *AnimGroup) *Animation {
 	return &Animation{
-		group: group,
+		group:           group,
+		frameblockArray: make([]*frameBlock, 0),
 	}
 }
 
@@ -36,7 +37,11 @@ func (anim *Animation) initFromDatas(datas *kv3.Kv3Element) error {
 	if pData != nil {
 		//log.Println(pData)
 		anim.FrameCount, _ = pData.GetInt32Attribute("m_nFrames")
-		anim.frameblockArray, _ = pData.GetKv3ValueArrayAttribute("m_frameblockArray")
+		frameblockArray, _ := pData.GetKv3ValueArrayAttribute("m_frameblockArray")
+		for _, v := range frameblockArray {
+			fb := new(frameBlock)
+			fb.initFromDatas(v.(*kv3.Kv3Element))
+		}
 	}
 	return nil
 }
@@ -47,4 +52,8 @@ func (anim *Animation) GetFps() float64 {
 
 func (anim *Animation) GetDuration() float64 {
 	return float64(anim.FrameCount-1) / anim.fps
+}
+
+func (anim *Animation) GetFrame(frameIndex int) error {
+	return nil
 }
