@@ -10,12 +10,10 @@ type Sequence struct {
 	Name              string
 	owner             *Model
 	datas             *kv3.Kv3Element
-	fps               float32
 	FrameCount        uint32
 	lastFrame         uint32
 	Activity          string
 	ActivityModifiers map[string]struct{}
-	frameblockArray   []kv3.Kv3Value
 	resource          IAnimationResource
 }
 
@@ -29,25 +27,7 @@ func newSequence(owner *Model) *Sequence {
 }
 
 func (seq *Sequence) initFromDatas(datas *kv3.Kv3Element) error {
-	var ok bool
 	seq.Name, _ = datas.GetStringAttribute("m_sName")
-	seq.fps, ok = datas.GetFloat32Attribute("fps")
-	if !ok {
-		seq.fps = 30 //TODO: not sure if we should set a default value
-	}
-
-	pData := datas.GetKv3ElementAttribute("m_pData")
-	if pData != nil {
-		//log.Println(pData)
-		frameCount, _ := pData.GetInt32Attribute("m_nFrames")
-		seq.FrameCount = uint32(frameCount)
-		if frameCount > 0 {
-			seq.lastFrame = seq.FrameCount - 1
-		}
-		seq.frameblockArray, _ = pData.GetKv3ValueArrayAttribute("m_frameblockArray")
-
-		///animArray, _ := anim.GetKv3ValueArrayAttribute("m_animArray")
-	}
 
 	activityArray, _ := datas.GetKv3ValueArrayAttribute("m_activityArray")
 	for k, v := range activityArray {
@@ -80,7 +60,9 @@ func (seq *Sequence) GetActualSequence() *Sequence {
 }
 
 func (seq *Sequence) GetFps() float32 {
-	return seq.GetActualSequence().fps
+	panic("todo")
+	// 30 is the default when there is no underlying animation, for instance bind pose
+	return 30
 }
 
 func (seq *Sequence) GetLastFrame() uint32 {

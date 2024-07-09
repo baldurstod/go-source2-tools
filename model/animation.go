@@ -1,12 +1,17 @@
 package model
 
 import (
+	"errors"
+
 	"github.com/baldurstod/go-source2-tools/kv3"
 )
 
 type Animation struct {
-	group *AnimGroup
-	Name  string
+	group           *AnimGroup
+	Name            string
+	fps             float32
+	FrameCount      int32
+	frameblockArray []kv3.Kv3Value
 }
 
 func newAnimation(group *AnimGroup) *Animation {
@@ -15,33 +20,31 @@ func newAnimation(group *AnimGroup) *Animation {
 	}
 }
 
-func (anim *Animation) setData(data kv3.Kv3Value) {
-	//log.Println(data)
-	/*
-		if data == nil {
-			return
-		}
+func (anim *Animation) initFromDatas(datas *kv3.Kv3Element) error {
+	var ok bool
+	anim.Name, ok = datas.GetStringAttribute("m_name")
+	if !ok {
+		return errors.New("")
+	}
 
-		animArray, ok := data.GetKv3ValueArrayAttribute("m_animArray")
-		if !ok {
-			//Should this case be treated as an error ?
-			return
-		}
-		log.Println(animArray)
-		/*
-			if (data) {
-				this.#animArray = data.m_animArray;
-				//console.error('data.m_animArray', data.m_animArray);
-				this.decoderArray = data.m_decoderArray;
-				this.segmentArray = data.m_segmentArray;
-				this.frameData = data.m_frameData;
+	anim.fps, ok = datas.GetFloat32Attribute("fps")
+	if !ok {
+		anim.fps = 30 //TODO: not sure if we should set a default value
+	}
 
-				if (this.#animArray) {
-					for (let i = 0; i < this.#animArray.length; i++) {
-						let anim = this.#animArray[i];
-						this.#animNames.set(anim.m_name, new Source2AnimationDesc(this.animGroup.source2Model, anim, this));
-					}
-				}
-			}
-	*/
+	pData := datas.GetKv3ElementAttribute("m_pData")
+	if pData != nil {
+		//log.Println(pData)
+		anim.FrameCount, _ = pData.GetInt32Attribute("m_nFrames")
+		anim.frameblockArray, _ = pData.GetKv3ValueArrayAttribute("m_frameblockArray")
+	}
+	return nil
+}
+
+func (anim *Animation) GetFps() float32 {
+	return anim.fps
+}
+
+func (anim *Animation) GetDuration() float32 {
+	return float32(anim.FrameCount-1) / anim.fps
 }

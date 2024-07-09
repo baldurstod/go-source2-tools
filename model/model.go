@@ -13,6 +13,7 @@ import (
 type Model struct {
 	file                 *source2.File
 	skeleton             *Skeleton
+	animations           map[string]*Animation
 	sequences            map[string]map[*Sequence]struct{}
 	sequencesInitialized bool
 	//	internalAnimGroup    *AnimGroup
@@ -21,6 +22,7 @@ type Model struct {
 
 func NewModel() *Model {
 	return &Model{
+		animations: map[string]*Animation{},
 		sequences:  make(map[string]map[*Sequence]struct{}),
 		animGroups: make(map[*AnimGroup]struct{}),
 	}
@@ -269,7 +271,8 @@ func (m *Model) initInternalAnimGroup() error {
 	if ok {
 		for _, v := range animArray {
 			anim := animGroup.CreateAnimation()
-			anim.setData(v)
+			anim.initFromDatas(v.(*kv3.Kv3Element))
+			m.animations[anim.Name] = anim
 		}
 	}
 
