@@ -134,23 +134,40 @@ func (m *Model) initSkeleton() (*Skeleton, error) {
 	return s, nil
 }
 
-func (m *Model) GetSequence(activity string, modifiers map[string]struct{}) error {
+func (m *Model) GetSequence(activity string, modifiers map[string]struct{}) (*Sequence, error) {
 	if !m.sequencesInitialized {
 		err := m.initAnimations()
 		if err != nil {
-			return fmt.Errorf("error in getsequence: <%w>", err)
+			return nil, fmt.Errorf("error in getsequence: <%w>", err)
 		}
 	}
 
 	if m.file == nil {
-		return errors.New("model don't have a file")
+		return nil, errors.New("model don't have a file")
 	}
 
-	for group := range m.animGroups {
-		return group.GetSequence(activity, modifiers)
+	sequences, ok := m.sequences[activity]
+	if !ok {
+		return nil, errors.New("activity not found " + activity)
 	}
 
-	return nil
+	bestScore := -1
+	var bestMatch *Sequence
+	//TODO: weight similar animations
+	for sequence := range sequences {
+		score := sequence.modifiersScore(modifiers)
+		if score > bestScore {
+			bestScore = score
+			bestMatch = sequence
+		}
+	}
+	/*
+		for group := range m.animGroups {
+			return group.GetSequence(activity, modifiers)
+		}
+	*/
+
+	return bestMatch, nil
 }
 
 func (m *Model) GetAnimationData(animations []animations.AnimationParameter) error {

@@ -56,9 +56,9 @@ func DisabledTestModel(t *testing.T) {
 
 	model.GetAnimationData(nil)
 
-	seq := model.GetSequence("ACT_DOTA_IDLE", nil)
+	seq, err := model.GetSequence("ACT_DOTA_IDLE", nil)
 
-	log.Println(skel.GetBones(), seq)
+	log.Println(skel.GetBones(), seq, err)
 }
 
 func TestAnim(t *testing.T) {
@@ -87,9 +87,9 @@ func TestAnim(t *testing.T) {
 	model := model.NewModel()
 	model.SetFile(file)
 
-	seq := model.GetSequence("ACT_DOTA_IDLE", nil)
+	seq, err := model.GetSequence("ACT_DOTA_IDLE", nil)
 
-	log.Println(seq)
+	log.Println(seq, err)
 	model.PrintSequences()
 	//log.Println(seq.GetFps())
 }

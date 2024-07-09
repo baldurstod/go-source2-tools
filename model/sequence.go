@@ -100,5 +100,18 @@ func (seq *Sequence) GetFrame(frameIndex uint32) error {
 	return nil
 }
 
-func (seq *Sequence) MatchActivity(frameIndex uint32) {
+func (seq *Sequence) modifiersScore(modifiers map[string]struct{}) int {
+	ret := 0
+
+	if len(modifiers) == 0 && len(seq.ActivityModifiers) == 0 {
+		return 1
+	}
+
+	for modifier := range modifiers {
+		if _, ok := seq.ActivityModifiers[modifier]; ok {
+			ret++
+		}
+	}
+
+	return ret
 }
