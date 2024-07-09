@@ -19,16 +19,18 @@ type Sequence struct {
 	resource          IAnimationResource
 }
 
-func newSequence(owner *Model, datas *kv3.Kv3Element, resource IAnimationResource) *Sequence {
-	seq := &Sequence{
-		owner:             owner,
-		datas:             datas,
-		resource:          resource,
+func newSequence(owner *Model) *Sequence {
+	return &Sequence{
+		owner: owner,
+		//datas:             datas,
+		//resource:          resource,
 		ActivityModifiers: make(map[string]struct{}),
 	}
+}
 
+func (seq *Sequence) initFromDatas(datas *kv3.Kv3Element) error {
 	var ok bool
-	seq.Name, _ = datas.GetStringAttribute("m_name")
+	seq.Name, _ = datas.GetStringAttribute("m_sName")
 	seq.fps, ok = datas.GetFloat32Attribute("fps")
 	if !ok {
 		seq.fps = 30 //TODO: not sure if we should set a default value
@@ -61,8 +63,7 @@ func newSequence(owner *Model, datas *kv3.Kv3Element, resource IAnimationResourc
 			seq.ActivityModifiers[name] = struct{}{}
 		}
 	}
-
-	return seq
+	return nil
 }
 
 func (seq *Sequence) GetActualSequence() *Sequence {
@@ -97,4 +98,7 @@ func (seq *Sequence) GetFrame(frameIndex uint32) error {
 	}
 
 	return nil
+}
+
+func (seq *Sequence) MatchActivity(frameIndex uint32) {
 }

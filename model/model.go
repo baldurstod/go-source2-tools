@@ -13,7 +13,7 @@ import (
 type Model struct {
 	file                 *source2.File
 	skeleton             *Skeleton
-	sequences            map[string]*Sequence
+	sequences            map[string]map[*Sequence]struct{}
 	sequencesInitialized bool
 	//	internalAnimGroup    *AnimGroup
 	animGroups map[*AnimGroup]struct{}
@@ -21,7 +21,7 @@ type Model struct {
 
 func NewModel() *Model {
 	return &Model{
-		sequences:  make(map[string]*Sequence),
+		sequences:  make(map[string]map[*Sequence]struct{}),
 		animGroups: make(map[*AnimGroup]struct{}),
 	}
 }
@@ -136,7 +136,7 @@ func (m *Model) initSkeleton() (*Skeleton, error) {
 
 func (m *Model) GetSequence(activity string, modifiers map[string]struct{}) error {
 	if !m.sequencesInitialized {
-		err := m.initSequences()
+		err := m.initAnimations()
 		if err != nil {
 			return fmt.Errorf("error in getsequence: <%w>", err)
 		}
@@ -160,27 +160,73 @@ func (m *Model) GetAnimationData(animations []animations.AnimationParameter) err
 	return nil
 }
 
+func (m *Model) initAnimations() error {
+	err := m.initSequences()
+	if err != nil {
+		return err
+	}
+
+	err = m.initAnims()
+	if err != nil {
+		return err
+	}
+	return nil
+}
+
 func (m *Model) initSequences() error {
+	sequences, err := m.file.GetBlockStructAsKv3Element("ASEQ")
+	if err != nil {
+		return fmt.Errorf("can't find ASEQ block: <%w>", err)
+	}
+
+	localS1SeqDescArray, _ := sequences.GetKv3ValueArrayAttribute("m_localS1SeqDescArray")
+	for _, v := range localS1SeqDescArray {
+		seq := newSequence(m)
+		seq.initFromDatas(v.(*kv3.Kv3Element))
+		//m.sequences[seq.Name] = seq
+		//log.Println(seq.Name)
+		m.addSequence(seq)
+	}
+
+	return nil
+}
+
+func (m *Model) addSequence(seq *Sequence) {
+	a, ok := m.sequences[seq.Activity]
+
+	if !ok {
+		a = make(map[*Sequence]struct{})
+		m.sequences[seq.Activity] = a
+	}
+	a[seq] = struct{}{}
+}
+
+func (m *Model) PrintSequences() {
+	for k, v := range m.sequences {
+		log.Println(k)
+		for k2 := range v {
+			log.Println("\t" + k2.Name)
+			for k3 := range k2.ActivityModifiers {
+				log.Println("\t\t" + k3)
+			}
+		}
+	}
+}
+
+func (m *Model) initAnims() error {
 	anim, err := m.file.GetBlockStructAsKv3Element("ANIM")
 	if err != nil {
 		return fmt.Errorf("can't find ANIM block: <%w>", err)
 	}
-
-	animArray, _ := anim.GetKv3ValueArrayAttribute("m_animArray")
-
-	for _, v := range animArray {
-		//log.Println(v)
-		seq := newSequence(m, v.(*kv3.Kv3Element), nil)
-		m.sequences[seq.Name] = seq
-		//log.Println(seq.Name)
-	}
-
 	/*
-		bonePosParents := skeleton.(*kv3.Kv3Element).GetAttribute("m_bonePosParent")
-		boneRotParents := skeleton.(*kv3.Kv3Element).GetAttribute("m_boneRotParent")
-		boneParents := skeleton.(*kv3.Kv3Element).GetAttribute("m_nParent")
+		animArray, _ := anim.GetKv3ValueArrayAttribute("m_animArray")
+		for _, v := range animArray {
+			//log.Println(v)
+			seq := newSequence(m, v.(*kv3.Kv3Element), nil)
+			m.sequences[seq.Name] = seq
+			//log.Println(seq.Name)
+		}
 	*/
-
 	log.Println(anim.GetAttributes())
 	//log.Println(m.sequences)
 

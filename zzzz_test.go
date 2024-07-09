@@ -74,6 +74,7 @@ func TestAnim(t *testing.T) {
 	filename = "dragon_knight.vmdl_c"
 	filename = "void_spirit.vmdl_c"
 	filename = "models/heroes/wisp/wisp.vmdl_c"
+	filename = "models/heroes/rubick/rubick.vmdl_c"
 
 	//b, _ := os.ReadFile(path.Join(varFolder, filename))
 	file, err := parser.Parse("dota2", filename)
@@ -89,6 +90,7 @@ func TestAnim(t *testing.T) {
 	seq := model.GetSequence("ACT_DOTA_IDLE", nil)
 
 	log.Println(seq)
+	model.PrintSequences()
 	//log.Println(seq.GetFps())
 }
 
