@@ -166,7 +166,7 @@ func parseBinaryKv3Element(context *parseKv3Context, quadReader *bytes.Reader, e
 			return value, nil
 		} else {
 			valueArray = append(valueArray, value)
-			return nil, nil
+			return value, nil
 		}
 	case kv3.DATA_TYPE_UINT64:
 		var value uint64
@@ -178,7 +178,7 @@ func parseBinaryKv3Element(context *parseKv3Context, quadReader *bytes.Reader, e
 			return value, nil
 		} else {
 			valueArray = append(valueArray, value)
-			return nil, nil
+			return value, nil
 		}
 	case kv3.DATA_TYPE_DOUBLE:
 		var value float64
@@ -190,7 +190,7 @@ func parseBinaryKv3Element(context *parseKv3Context, quadReader *bytes.Reader, e
 			return value, nil
 		} else {
 			valueArray = append(valueArray, value)
-			return nil, nil
+			return value, nil
 		}
 	case kv3.DATA_TYPE_BYTE:
 		var value int8
@@ -202,7 +202,7 @@ func parseBinaryKv3Element(context *parseKv3Context, quadReader *bytes.Reader, e
 			return value, nil
 		} else {
 			valueArray = append(valueArray, value)
-			return nil, nil
+			return value, nil
 		}
 	case kv3.DATA_TYPE_STRING, kv3.DATA_TYPE_RESOURCE:
 		var value int32
@@ -452,7 +452,7 @@ func parseBinaryKv3Element(context *parseKv3Context, quadReader *bytes.Reader, e
 			return value, nil
 		} else {
 			valueArray = append(valueArray, value)
-			return nil, nil
+			return value, nil
 		}
 	case kv3.DATA_TYPE_TYPED_ARRAY2:
 		var count uint8
