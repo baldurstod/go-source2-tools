@@ -14,19 +14,21 @@ type Sequence struct {
 	lastFrame         uint32
 	Activity          string
 	ActivityModifiers map[string]struct{}
+	animations        []string
 	resource          IAnimationResource
 }
 
 func newSequence(owner *Model) *Sequence {
 	return &Sequence{
-		owner: owner,
+		owner:      owner,
+		animations: make([]string, 0, 3),
 		//datas:             datas,
 		//resource:          resource,
 		ActivityModifiers: make(map[string]struct{}),
 	}
 }
 
-func (seq *Sequence) initFromDatas(datas *kv3.Kv3Element) error {
+func (seq *Sequence) initFromDatas(datas *kv3.Kv3Element, localSequenceNameArray []kv3.Kv3Value) error {
 	seq.Name, _ = datas.GetStringAttribute("m_sName")
 
 	activityArray, _ := datas.GetKv3ValueArrayAttribute("m_activityArray")
@@ -43,6 +45,24 @@ func (seq *Sequence) initFromDatas(datas *kv3.Kv3Element) error {
 			seq.ActivityModifiers[name] = struct{}{}
 		}
 	}
+
+	fetch := datas.GetKv3ElementAttribute("m_fetch")
+	if fetch != nil {
+		localReferenceArray, _ := fetch.GetKv3ValueArrayAttribute("m_localReferenceArray")
+		for _, v := range localReferenceArray {
+			ref, ok := v.(int32)
+			if !ok {
+				continue
+			}
+
+			name := localSequenceNameArray[ref]
+			n, ok := name.(string)
+			if ok {
+				seq.animations = append(seq.animations, n)
+			}
+		}
+	}
+
 	return nil
 }
 
@@ -59,8 +79,14 @@ func (seq *Sequence) GetActualSequence() *Sequence {
 	return seq
 }
 
-func (seq *Sequence) GetFps() float32 {
-	panic("todo")
+func (seq *Sequence) GetFps() float64 {
+	for _, animName := range seq.animations {
+		anim := seq.owner.animations[animName]
+		if anim != nil {
+			return anim.fps
+		}
+	}
+
 	// 30 is the default when there is no underlying animation, for instance bind pose
 	return 30
 }

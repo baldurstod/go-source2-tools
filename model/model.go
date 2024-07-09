@@ -198,10 +198,18 @@ func (m *Model) initSequences() error {
 		return fmt.Errorf("can't find ASEQ block: <%w>", err)
 	}
 
-	localS1SeqDescArray, _ := sequences.GetKv3ValueArrayAttribute("m_localS1SeqDescArray")
+	localS1SeqDescArray, ok := sequences.GetKv3ValueArrayAttribute("m_localS1SeqDescArray")
+	if !ok {
+		return errors.New("Key not found m_localS1SeqDescArray")
+	}
+
+	localSequenceNameArray, ok := sequences.GetKv3ValueArrayAttribute("m_localSequenceNameArray")
+	if !ok {
+		return errors.New("Key not found m_localSequenceNameArray")
+	}
 	for _, v := range localS1SeqDescArray {
 		seq := newSequence(m)
-		seq.initFromDatas(v.(*kv3.Kv3Element))
+		seq.initFromDatas(v.(*kv3.Kv3Element), localSequenceNameArray)
 		//m.sequences[seq.Name] = seq
 		//log.Println(seq.Name)
 		m.addSequence(seq)

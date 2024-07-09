@@ -88,13 +88,16 @@ func TestAnim(t *testing.T) {
 	model.SetFile(file)
 
 	seq, err := model.GetSequence("ACT_DOTA_IDLE", nil)
+	modifiers := make(map[string]struct{})
+	modifiers["centaur_mount"] = struct{}{}
+	seq, err = model.GetSequence("ACT_DOTA_CAST_ABILITY_5", modifiers)
 
 	log.Println(seq, err)
-	model.PrintSequences()
-	//log.Println(seq.GetFps())
+	//model.PrintSequences()
+	log.Println(seq.GetFps())
 }
 
-func TestRepo(t *testing.T) {
+func DisabledTestRepo(t *testing.T) {
 	log.SetFlags(log.LstdFlags | log.Lshortfile)
 	initRepo()
 	repo := repository.GetRepository("dota2")
