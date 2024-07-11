@@ -1,9 +1,12 @@
 package kv3
 
 import (
+	"errors"
 	"log"
 	"strconv"
 	"strings"
+
+	"github.com/baldurstod/go-vector"
 )
 
 type Kv3Element struct {
@@ -150,6 +153,60 @@ func (e *Kv3Element) GetKv3ElementAttribute(name string) *Kv3Element {
 	}
 
 	return v
+}
+
+func (e *Kv3Element) GetVec3Attribute(name string) (*vector.Vector3[float32], error) {
+	value, ok := e.GetKv3ValueArrayAttribute(name)
+	if !ok {
+		return nil, errors.New("can't get vec3 attribute")
+	}
+
+	if len(value) != 3 {
+		return nil, errors.New("vec3 length must be 3")
+	}
+
+	var vec vector.Vector3[float32]
+	for i := 0; i < 3; i++ {
+		v := value[i]
+
+		switch v := v.(type) {
+		case float32:
+			vec[i] = v
+		case float64:
+			vec[i] = float32(v)
+		default:
+			return nil, errors.New("vec3 item is not a float")
+		}
+
+	}
+	return &vec, nil
+}
+
+func (e *Kv3Element) GetQuatAttribute(name string) (*vector.Quaternion[float32], error) {
+	value, ok := e.GetKv3ValueArrayAttribute(name)
+	if !ok {
+		return nil, errors.New("can't get quaternion attribute")
+	}
+
+	if len(value) != 4 {
+		return nil, errors.New("quaternion length must be 4")
+	}
+
+	var quat vector.Quaternion[float32]
+	for i := 0; i < 4; i++ {
+		v := value[i]
+
+		switch v := v.(type) {
+		case float32:
+			quat[i] = v
+		case float64:
+			quat[i] = float32(v)
+		default:
+			return nil, errors.New("quaternion item is not a float")
+		}
+
+	}
+	return &quat, nil
 }
 
 func (e *Kv3Element) String() string {
