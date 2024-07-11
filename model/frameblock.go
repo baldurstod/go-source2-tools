@@ -51,8 +51,8 @@ func (fb *frameBlock) GetFrame(frameIndex int) error {
 	frameIndex -= fb.startFrame
 	log.Println(fb.segmentIndex)
 	for _, v := range fb.segmentIndex {
-		seg := fb.block.getSegment(v)
-		log.Println(seg)
+		fb.block.getSegment(v)
+		//log.Println(seg)
 	}
 	return nil
 }

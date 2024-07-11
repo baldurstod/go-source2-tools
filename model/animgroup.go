@@ -11,13 +11,14 @@ import (
 type AnimGroup struct {
 	model          *Model
 	localAnimArray []kv3.Kv3Value
-	decodeKey      *kv3.Kv3Element
+	decodeKey      *DecodeKey
 	animations     map[*Animation]struct{}
 }
 
 func newAnimGroup(model *Model) *AnimGroup {
 	return &AnimGroup{
 		model:      model,
+		decodeKey:  newDecodeKey(),
 		animations: make(map[*Animation]struct{}),
 	}
 }
@@ -29,10 +30,16 @@ func (ag *AnimGroup) initFromFile(f *source2.File) error {
 		return fmt.Errorf("can't get local anim array while initializing anim group: <%w>", err)
 	}
 
-	ag.decodeKey, err = f.GetBlockStructAsKv3Element("AGRP.m_decodeKey")
+	decodeKey, err := f.GetBlockStructAsKv3Element("AGRP.m_decodeKey")
 	if err != nil {
 		return fmt.Errorf("can't get decode key while initializing anim group: <%w>", err)
 	}
+
+	err = ag.decodeKey.initFromDatas(decodeKey)
+	if err != nil {
+		return fmt.Errorf("can't init decode key while initializing anim group: <%w>", err)
+	}
+
 	return nil
 }
 

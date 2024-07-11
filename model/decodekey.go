@@ -1,21 +1,41 @@
 package model
 
+import (
+	"fmt"
+
+	"github.com/baldurstod/go-source2-tools/kv3"
+)
+
 type DecodeKey struct {
-	Bones        []*Bone
+	Bones        []*DecodeKeyBone
 	DataChannels []*DataChannel
 }
 
 func newDecodeKey() *DecodeKey {
 	return &DecodeKey{
-		Bones:        make([]*Bone, 0),
+		Bones:        make([]*DecodeKeyBone, 0),
 		DataChannels: make([]*DataChannel, 0),
 	}
 }
 
-func (dk *DecodeKey) AddBone(bone *Bone) {
+func (dk *DecodeKey) initFromDatas(datas *kv3.Kv3Element) error {
+	m_boneArray, ok := datas.GetKv3ValueArrayAttribute("m_boneArray")
+	if !ok {
+		return fmt.Errorf("can't get bone array while initializing decode key")
+	}
+
+	for _, v := range m_boneArray {
+		bone := newDecodeKeyBone()
+		bone.initFromDatas(v.(*kv3.Kv3Element))
+	}
+
+	return nil
+}
+
+func (dk *DecodeKey) addBone(bone *DecodeKeyBone) {
 	dk.Bones = append(dk.Bones, bone)
 }
 
-func (dk *DecodeKey) AddDataChannel(dc *DataChannel) {
+func (dk *DecodeKey) addDataChannel(dc *DataChannel) {
 	dk.DataChannels = append(dk.DataChannels, dc)
 }
