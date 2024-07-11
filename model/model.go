@@ -14,7 +14,7 @@ type Model struct {
 	file                 *source2.File
 	skeleton             *Skeleton
 	animations           map[string]*Animation
-	sequences            map[string]map[*Sequence]struct{}
+	activities           map[string]map[*Sequence]struct{}
 	sequencesInitialized bool
 	//	internalAnimGroup    *AnimGroup
 	animGroups map[*AnimGroup]struct{}
@@ -23,7 +23,7 @@ type Model struct {
 func NewModel() *Model {
 	return &Model{
 		animations: map[string]*Animation{},
-		sequences:  make(map[string]map[*Sequence]struct{}),
+		activities: make(map[string]map[*Sequence]struct{}),
 		animGroups: make(map[*AnimGroup]struct{}),
 	}
 }
@@ -148,7 +148,7 @@ func (m *Model) GetSequence(activity string, modifiers map[string]struct{}) (*Se
 		return nil, errors.New("model don't have a file")
 	}
 
-	sequences, ok := m.sequences[activity]
+	activities, ok := m.activities[activity]
 	if !ok {
 		return nil, errors.New("activity not found " + activity)
 	}
@@ -156,7 +156,7 @@ func (m *Model) GetSequence(activity string, modifiers map[string]struct{}) (*Se
 	bestScore := -1
 	var bestMatch *Sequence
 	//TODO: weight similar animations
-	for sequence := range sequences {
+	for sequence := range activities {
 		score := sequence.modifiersScore(modifiers)
 		if score > bestScore {
 			bestScore = score
@@ -219,17 +219,17 @@ func (m *Model) initSequences() error {
 }
 
 func (m *Model) addSequence(seq *Sequence) {
-	a, ok := m.sequences[seq.Activity]
+	a, ok := m.activities[seq.Activity]
 
 	if !ok {
 		a = make(map[*Sequence]struct{})
-		m.sequences[seq.Activity] = a
+		m.activities[seq.Activity] = a
 	}
 	a[seq] = struct{}{}
 }
 
 func (m *Model) PrintSequences() {
-	for k, v := range m.sequences {
+	for k, v := range m.activities {
 		log.Println(k)
 		for k2 := range v {
 			log.Println("\t" + k2.Name)
