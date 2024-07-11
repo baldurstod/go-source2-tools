@@ -36,8 +36,8 @@ func (ag *AnimGroup) initFromFile(f *source2.File) error {
 	return nil
 }
 
-func (ag *AnimGroup) CreateAnimation() *Animation {
-	anim := newAnimation(ag)
+func (ag *AnimGroup) CreateAnimation(block *AnimBlock) *Animation {
+	anim := newAnimation(ag, block)
 	ag.AddAnimation(anim)
 
 	return anim

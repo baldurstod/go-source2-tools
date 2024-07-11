@@ -7,6 +7,8 @@ import (
 )
 
 type frameBlock struct {
+	group        *AnimGroup
+	block        *AnimBlock
 	startFrame   int
 	endFrame     int
 	segmentIndex []int
@@ -21,6 +23,13 @@ type frameBlock struct {
 				77, 5, 6,
 			]
 		},*/
+}
+
+func newFrameBlock(group *AnimGroup, block *AnimBlock) *frameBlock {
+	return &frameBlock{
+		group: group,
+		block: block,
+	}
 }
 
 func (fb *frameBlock) initFromDatas(datas *kv3.Kv3Element) error {
@@ -41,5 +50,9 @@ func (fb *frameBlock) initFromDatas(datas *kv3.Kv3Element) error {
 func (fb *frameBlock) GetFrame(frameIndex int) error {
 	frameIndex -= fb.startFrame
 	log.Println(fb.segmentIndex)
+	for _, v := range fb.segmentIndex {
+		seg := fb.block.getSegment(v)
+		log.Println(seg)
+	}
 	return nil
 }

@@ -294,7 +294,7 @@ func (m *Model) initInternalAnimGroup() error {
 
 	if ok {
 		for _, v := range animArray {
-			anim := animGroup.CreateAnimation()
+			anim := animGroup.CreateAnimation(m.animBlock)
 			anim.initFromDatas(v.(*kv3.Kv3Element))
 			m.animations[anim.Name] = anim
 		}

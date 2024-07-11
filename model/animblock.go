@@ -45,3 +45,11 @@ func (block *AnimBlock) initFromDatas(datas *kv3.Kv3Element) error {
 
 	return nil
 }
+
+func (block *AnimBlock) getSegment(index int) *Segment {
+	if index < 0 || index >= len(block.segments) {
+		return nil
+	}
+
+	return &block.segments[index]
+}

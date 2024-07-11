@@ -8,6 +8,7 @@ import (
 
 type Animation struct {
 	group       *AnimGroup
+	block       *AnimBlock
 	Name        string
 	fps         float64
 	FrameCount  int
@@ -15,9 +16,10 @@ type Animation struct {
 	frameBlocks []*frameBlock
 }
 
-func newAnimation(group *AnimGroup) *Animation {
+func newAnimation(group *AnimGroup, block *AnimBlock) *Animation {
 	return &Animation{
 		group:       group,
+		block:       block,
 		frameBlocks: make([]*frameBlock, 0),
 	}
 }
@@ -43,7 +45,7 @@ func (anim *Animation) initFromDatas(datas *kv3.Kv3Element) error {
 		anim.frameBlocks = make([]*frameBlock, 0, len(frameBlocks))
 
 		for _, v := range frameBlocks {
-			fb := new(frameBlock)
+			fb := newFrameBlock(anim.group, anim.block)
 			fb.initFromDatas(v.(*kv3.Kv3Element))
 			anim.frameBlocks = append(anim.frameBlocks, fb)
 		}
