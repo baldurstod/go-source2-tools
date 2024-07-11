@@ -1,6 +1,8 @@
 package model
 
 import (
+	"log"
+
 	"github.com/baldurstod/go-source2-tools/kv3"
 )
 
@@ -33,5 +35,11 @@ func (fb *frameBlock) initFromDatas(datas *kv3.Kv3Element) error {
 	for _, v := range segmentIndex {
 		fb.segmentIndex = append(fb.segmentIndex, int(v.(int32)))
 	}
+	return nil
+}
+
+func (fb *frameBlock) GetFrame(frameIndex int) error {
+	frameIndex -= fb.startFrame
+	log.Println(fb.segmentIndex)
 	return nil
 }

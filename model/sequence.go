@@ -81,7 +81,7 @@ func (seq *Sequence) GetFrameCount() int {
 	for _, animName := range seq.animations {
 		anim := seq.owner.animations[animName]
 		if anim != nil {
-			count += int(anim.FrameCount)
+			count += anim.FrameCount
 		}
 	}
 
@@ -93,9 +93,16 @@ func (seq *Sequence) GetFrame(frameIndex int) error {
 	if actualSequence != seq {
 		return actualSequence.GetFrame(frameIndex)
 	}*/
+	frameIndex = frameIndex % seq.GetFrameCount()
 
-	if frameIndex > seq.GetFrameCount() {
-		frameIndex = 0
+	for _, animName := range seq.animations {
+		anim := seq.owner.animations[animName]
+		if frameIndex > anim.lastFrame {
+			frameIndex -= anim.lastFrame
+			continue
+		}
+
+		return anim.GetFrame(frameIndex)
 	}
 
 	return nil

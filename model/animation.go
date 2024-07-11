@@ -7,17 +7,18 @@ import (
 )
 
 type Animation struct {
-	group           *AnimGroup
-	Name            string
-	fps             float64
-	FrameCount      int
-	frameblockArray []*frameBlock
+	group       *AnimGroup
+	Name        string
+	fps         float64
+	FrameCount  int
+	lastFrame   int
+	frameBlocks []*frameBlock
 }
 
 func newAnimation(group *AnimGroup) *Animation {
 	return &Animation{
-		group:           group,
-		frameblockArray: make([]*frameBlock, 0),
+		group:       group,
+		frameBlocks: make([]*frameBlock, 0),
 	}
 }
 
@@ -25,7 +26,7 @@ func (anim *Animation) initFromDatas(datas *kv3.Kv3Element) error {
 	var ok bool
 	anim.Name, ok = datas.GetStringAttribute("m_name")
 	if !ok {
-		return errors.New("")
+		return errors.New("unable to get animation name")
 	}
 
 	anim.fps, ok = datas.GetFloatAttribute("fps")
@@ -37,10 +38,14 @@ func (anim *Animation) initFromDatas(datas *kv3.Kv3Element) error {
 	if pData != nil {
 		//log.Println(pData)
 		anim.FrameCount, _ = pData.GetIntAttribute("m_nFrames")
-		frameblockArray, _ := pData.GetKv3ValueArrayAttribute("m_frameblockArray")
-		for _, v := range frameblockArray {
+		anim.lastFrame = anim.FrameCount - 1
+		frameBlocks, _ := pData.GetKv3ValueArrayAttribute("m_frameblockArray")
+		anim.frameBlocks = make([]*frameBlock, 0, len(frameBlocks))
+
+		for _, v := range frameBlocks {
 			fb := new(frameBlock)
 			fb.initFromDatas(v.(*kv3.Kv3Element))
+			anim.frameBlocks = append(anim.frameBlocks, fb)
 		}
 	}
 	return nil
@@ -55,5 +60,12 @@ func (anim *Animation) GetDuration() float64 {
 }
 
 func (anim *Animation) GetFrame(frameIndex int) error {
+	for _, fb := range anim.frameBlocks {
+		if fb.startFrame <= frameIndex && fb.endFrame >= frameIndex {
+			fb.GetFrame(frameIndex)
+		}
+	}
+
+	//panic("todo")
 	return nil
 }
