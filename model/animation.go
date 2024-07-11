@@ -10,7 +10,7 @@ type Animation struct {
 	group           *AnimGroup
 	Name            string
 	fps             float64
-	FrameCount      int32
+	FrameCount      int
 	frameblockArray []*frameBlock
 }
 
@@ -36,7 +36,7 @@ func (anim *Animation) initFromDatas(datas *kv3.Kv3Element) error {
 	pData := datas.GetKv3ElementAttribute("m_pData")
 	if pData != nil {
 		//log.Println(pData)
-		anim.FrameCount, _ = pData.GetInt32Attribute("m_nFrames")
+		anim.FrameCount, _ = pData.GetIntAttribute("m_nFrames")
 		frameblockArray, _ := pData.GetKv3ValueArrayAttribute("m_frameblockArray")
 		for _, v := range frameblockArray {
 			fb := new(frameBlock)
