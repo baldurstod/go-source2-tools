@@ -1,6 +1,8 @@
-package animations
+package model
 
 import (
+	"fmt"
+
 	"github.com/baldurstod/go-source2-tools/kv3"
 )
 
@@ -21,16 +23,12 @@ func (block *AnimBlock) initFromDatas(datas *kv3.Kv3Element) error {
 
 	for _, v := range decoders {
 		dec := Decoder{}
-		dec.initFromDatas(v.(*kv3.Kv3Element))
+		err := dec.initFromDatas(v.(*kv3.Kv3Element))
+		if err != nil {
+			return fmt.Errorf("cannot init decoder in AnimBlock.initFromDatas: <%w>", err)
+		}
 		block.decoders = append(block.decoders, dec)
 	}
-	/*dec.Name, ok = datas.GetStringAttribute("m_szName")
-	if !ok {
-		return errors.New("unable to get decoder name")
-	}
-
-	dec.Version, _ = datas.GetIntAttribute("m_nVersion")
-	dec.Type, _ = datas.GetIntAttribute("m_nType")*/
 
 	return nil
 }

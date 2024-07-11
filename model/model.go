@@ -17,8 +17,8 @@ type Model struct {
 	animations           map[string]*Animation
 	activities           map[string]map[*Sequence]struct{}
 	sequencesInitialized bool
-	//	internalAnimGroup    *AnimGroup
-	animGroups map[*AnimGroup]struct{}
+	animGroups           map[*AnimGroup]struct{}
+	animBlock            *AnimBlock
 }
 
 func NewModel() *Model {
@@ -27,6 +27,7 @@ func NewModel() *Model {
 		animations: map[string]*Animation{},
 		activities: make(map[string]map[*Sequence]struct{}),
 		animGroups: make(map[*AnimGroup]struct{}),
+		animBlock:  newAnimBlock(),
 	}
 }
 
@@ -269,6 +270,8 @@ func (m *Model) initAnims() error {
 		return fmt.Errorf("can't find ANIM block: <%w>", err)
 	}
 	log.Println(anim.GetAttributes())
+
+	m.animBlock.initFromDatas(anim)
 
 	err = m.initInternalAnimGroup()
 	if err != nil {

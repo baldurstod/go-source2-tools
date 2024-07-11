@@ -1,4 +1,4 @@
-package animations
+package model
 
 import (
 	"errors"
