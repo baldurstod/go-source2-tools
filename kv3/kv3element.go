@@ -48,6 +48,22 @@ func (e *Kv3Element) GetStringAttribute(name string) (string, bool) {
 	return f, true
 }
 
+func (e *Kv3Element) GetIntAttribute(name string) (int, bool) {
+	value, ok := e.attributes[name]
+	if !ok {
+		return 0, false
+	}
+
+	switch v := value.(type) {
+	case int:
+		return v, true
+	case int32:
+		return int(v), true
+	default:
+		return 0, false
+	}
+}
+
 func (e *Kv3Element) GetInt32Attribute(name string) (int32, bool) {
 	value, ok := e.attributes[name]
 	if !ok {
