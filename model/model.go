@@ -13,6 +13,7 @@ import (
 type Model struct {
 	file                 *source2.File
 	skeleton             *Skeleton
+	sequences            map[string]*Sequence
 	animations           map[string]*Animation
 	activities           map[string]map[*Sequence]struct{}
 	sequencesInitialized bool
@@ -22,6 +23,7 @@ type Model struct {
 
 func NewModel() *Model {
 	return &Model{
+		sequences:  map[string]*Sequence{},
 		animations: map[string]*Animation{},
 		activities: make(map[string]map[*Sequence]struct{}),
 		animGroups: make(map[*AnimGroup]struct{}),
@@ -172,7 +174,29 @@ func (m *Model) GetSequence(activity string, modifiers map[string]struct{}) (*Se
 	return bestMatch, nil
 }
 
+func (m *Model) GetSequenceByName(name string) (*Sequence, error) {
+	if !m.sequencesInitialized {
+		err := m.initAnimations()
+		if err != nil {
+			return nil, fmt.Errorf("error in getsequence: <%w>", err)
+		}
+	}
+
+	sequence, ok := m.sequences[name]
+	if !ok {
+		return nil, errors.New("sequence not found " + name)
+	}
+
+	return sequence, nil
+}
+
 func (m *Model) GetAnimationData(animations []animations.AnimationParameter) error {
+	if !m.sequencesInitialized {
+		err := m.initAnimations()
+		if err != nil {
+			return fmt.Errorf("error in GetAnimationData: <%w>", err)
+		}
+	}
 	for _, ap := range animations {
 		log.Println(ap)
 	}
@@ -210,8 +234,6 @@ func (m *Model) initSequences() error {
 	for _, v := range localS1SeqDescArray {
 		seq := newSequence(m)
 		seq.initFromDatas(v.(*kv3.Kv3Element), localSequenceNameArray)
-		//m.sequences[seq.Name] = seq
-		//log.Println(seq.Name)
 		m.addSequence(seq)
 	}
 
@@ -226,6 +248,7 @@ func (m *Model) addSequence(seq *Sequence) {
 		m.activities[seq.Activity] = a
 	}
 	a[seq] = struct{}{}
+	m.sequences[seq.Name] = seq
 }
 
 func (m *Model) PrintSequences() {
@@ -245,17 +268,7 @@ func (m *Model) initAnims() error {
 	if err != nil {
 		return fmt.Errorf("can't find ANIM block: <%w>", err)
 	}
-	/*
-		animArray, _ := anim.GetKv3ValueArrayAttribute("m_animArray")
-		for _, v := range animArray {
-			//log.Println(v)
-			seq := newSequence(m, v.(*kv3.Kv3Element), nil)
-			m.sequences[seq.Name] = seq
-			//log.Println(seq.Name)
-		}
-	*/
 	log.Println(anim.GetAttributes())
-	//log.Println(m.sequences)
 
 	err = m.initInternalAnimGroup()
 	if err != nil {
@@ -283,20 +296,6 @@ func (m *Model) initInternalAnimGroup() error {
 			m.animations[anim.Name] = anim
 		}
 	}
-
-	//let anims = sourceFile.getBlockStruct('ANIM.keyValue.root');
-
-	/*
-		let anims = sourceFile.getBlockStruct('ANIM.keyValue.root');
-		if (anims) {
-			let loadedAnim = new Source2Animation(animGroup, '');
-			loadedAnim.setAnimDatas(anims);
-			animGroup._changemyname = animGroup._changemyname || [];
-			animGroup._changemyname.push(loadedAnim);
-		}
-		this.animGroups.add(animGroup);
-	*/
-	//log.Println(animDatas)
 	m.animGroups[animGroup] = struct{}{}
 
 	return nil
