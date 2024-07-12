@@ -6,21 +6,25 @@ import (
 	"github.com/baldurstod/go-source2-tools/kv3"
 )
 
+type DataChannelElement struct {
+	name  string
+	index int32
+	mask  uint32
+}
+
 type DataChannel struct {
-	channelClass  string
-	variableName  string
-	grouping      string
-	description   string
-	flags         int
-	channelType   int32
-	elementsName  []string
-	elementsIndex []int32
-	elementsMask  []uint32
+	channelClass string
+	variableName string
+	grouping     string
+	description  string
+	flags        int
+	channelType  int32
+	elements     []DataChannelElement
 }
 
 func newDataChannel() *DataChannel {
 	return &DataChannel{
-		elementsName: make([]string, 0),
+		elements: make([]DataChannelElement, 0),
 	}
 }
 
@@ -41,22 +45,32 @@ func (dc *DataChannel) initFromDatas(datas *kv3.Kv3Element) error {
 	dc.grouping, _ = datas.GetStringAttribute("m_szGrouping")
 	dc.description, _ = datas.GetStringAttribute("m_szDescription")
 
-	elementName, _ := datas.GetKv3ValueArrayAttribute("m_szElementNameArray")
-	dc.elementsName = make([]string, 0, len(elementName))
-	for _, v := range elementName {
-		dc.elementsName = append(dc.elementsName, v.(string))
+	elementName, ok := datas.GetKv3ValueArrayAttribute("m_szElementNameArray")
+	if !ok {
+		return errors.New("unable to get data channel element name")
+	}
+	elementIndex, ok := datas.GetKv3ValueArrayAttribute("m_nElementIndexArray")
+	if !ok {
+		return errors.New("unable to get data channel element index")
+	}
+	elementMask, ok := datas.GetKv3ValueArrayAttribute("m_nElementMaskArray")
+	if !ok {
+		return errors.New("unable to get data channel element mask")
+	}
+	l := len(elementName)
+	if len(elementIndex) != l {
+		return errors.New("element name array is not the same length as element index")
+	}
+	if len(elementMask) != l {
+		return errors.New("element name array is not the same length as element mask")
 	}
 
-	elementIndex, _ := datas.GetKv3ValueArrayAttribute("m_nElementIndexArray")
-	dc.elementsIndex = make([]int32, 0, len(elementIndex))
-	for _, v := range elementIndex {
-		dc.elementsIndex = append(dc.elementsIndex, v.(int32))
-	}
-
-	elementMask, _ := datas.GetKv3ValueArrayAttribute("m_nElementMaskArray")
-	dc.elementsMask = make([]uint32, 0, len(elementMask))
-	for _, v := range elementMask {
-		dc.elementsMask = append(dc.elementsMask, v.(uint32))
+	dc.elements = make([]DataChannelElement, len(elementName))
+	for i := 0; i < l; i++ {
+		elem := &dc.elements[i]
+		elem.name = elementName[i].(string)
+		elem.index = elementIndex[i].(int32)
+		elem.mask = elementMask[i].(uint32)
 	}
 
 	return nil
