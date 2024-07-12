@@ -2,6 +2,7 @@ package model
 
 import (
 	"errors"
+	"log"
 
 	"github.com/baldurstod/go-source2-tools/kv3"
 )
@@ -40,7 +41,14 @@ func (seg *Segment) initFromDatas(datas *kv3.Kv3Element) error {
 	seg.boneCount = uint16(c[4]) + (uint16(c[5]) << 8)
 	seg.dataLength = uint16(c[6]) + (uint16(c[7]) << 8)
 
-	seg.bones = make([]uint16, 0, seg.boneCount)
+	byteIndex := 8
+	seg.bones = make([]uint16, seg.boneCount)
+	for i := 0; i < int(seg.boneCount); i++ {
+		seg.bones[i] = uint16(c[byteIndex]) + (uint16(c[byteIndex+1]) << 8)
+		byteIndex += 2
+	}
+
+	log.Println(seg.bones)
 
 	return nil
 }
