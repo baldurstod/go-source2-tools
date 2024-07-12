@@ -6,6 +6,7 @@ import (
 	"errors"
 	"fmt"
 	"io"
+	"math"
 
 	"github.com/baldurstod/go-source2-tools/kv3"
 	"github.com/baldurstod/go-vector"
@@ -59,7 +60,7 @@ func (dec *Decoder) decode(reader *bytes.Reader, frameIndex int, boneIndex int, 
 
 		err := binary.Read(reader, binary.LittleEndian, &v)
 		if err != nil {
-			return nil, fmt.Errorf("failed to read segment bone count: <%w>", err)
+			return nil, fmt.Errorf("failed to read CCompressedStaticVector3: <%w>", err)
 		}
 
 		return vector.Vector3[float32]{
@@ -73,10 +74,18 @@ func (dec *Decoder) decode(reader *bytes.Reader, frameIndex int, boneIndex int, 
 
 		err := binary.Read(reader, binary.LittleEndian, &v)
 		if err != nil {
-			return nil, fmt.Errorf("failed to read segment bone count: <%w>", err)
+			return nil, fmt.Errorf("failed to read CCompressedStaticFullVector3: <%w>", err)
 		}
 
 		return v, nil
+	case "CCompressedAnimQuaternion":
+		buf := make([]byte, 6)
+		_, err := reader.Read(buf)
+		if err != nil {
+			return nil, fmt.Errorf("failed to read CCompressedAnimQuaternion: <%w>", err)
+		}
+
+		return readQuaternion48(buf), nil
 	default:
 		return nil, errors.New("unknown decoder type: " + dec.Name)
 	}
@@ -89,3 +98,42 @@ func (dec *Decoder) decode(reader *bytes.Reader, frameIndex int, boneIndex int, 
 		m_nType = 1
 	},
 */
+
+const QUATERNION48_SCALE = math.Sqrt2 / 0x8000
+
+func readQuaternion48(buf []byte) *vector.Quaternion[float32] {
+	// Values
+	i1 := int(buf[0]) + ((int(buf[1]) & 127) << 8) - 0x4000
+	i2 := int(buf[2]) + ((int(buf[3]) & 127) << 8) - 0x4000
+	i3 := int(buf[4]) + ((int(buf[5]) & 127) << 8) - 0x4000
+
+	// Signs
+	s1 := buf[1] & 128
+	s2 := buf[3] & 128
+	s3 := buf[5] & 128
+
+	x := QUATERNION48_SCALE * float32(i1)
+	y := QUATERNION48_SCALE * float32(i2)
+	z := QUATERNION48_SCALE * float32(i3)
+	w := float32(math.Sqrt(float64(1 - (x * x) - (y * y) - (z * z))))
+
+	// Apply sign 3
+	if s3 == 128 {
+		w *= -1
+	}
+
+	// Apply sign 1 and 2
+	if s1 == 128 {
+		if s2 == 128 {
+			return &vector.Quaternion[float32]{y, z, w, x}
+		} else {
+			return &vector.Quaternion[float32]{z, w, x, y}
+		}
+	} else {
+		if s2 == 128 {
+			return &vector.Quaternion[float32]{w, x, y, z}
+		} else {
+			return &vector.Quaternion[float32]{x, y, z, w}
+		}
+	}
+}
