@@ -2,6 +2,7 @@ package model
 
 import (
 	"errors"
+	"fmt"
 
 	"github.com/baldurstod/go-source2-tools/kv3"
 )
@@ -64,7 +65,10 @@ func (anim *Animation) GetDuration() float64 {
 func (anim *Animation) GetFrame(frameIndex int) error {
 	for _, fb := range anim.frameBlocks {
 		if fb.startFrame <= frameIndex && fb.endFrame >= frameIndex {
-			fb.GetFrame(frameIndex)
+			err := fb.GetFrame(frameIndex)
+			if err != nil {
+				return fmt.Errorf("error in Animation.GetFrame: <%w>", err)
+			}
 		}
 	}
 
