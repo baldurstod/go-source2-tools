@@ -7,9 +7,10 @@ import (
 )
 
 type Decoder struct {
-	Name    string
-	Version int
-	Type    int
+	Name         string
+	Version      int
+	Type         int
+	BytesPerBone int
 }
 
 func (dec *Decoder) initFromDatas(datas *kv3.Kv3Element) error {
@@ -21,6 +22,25 @@ func (dec *Decoder) initFromDatas(datas *kv3.Kv3Element) error {
 
 	dec.Version, _ = datas.GetIntAttribute("m_nVersion")
 	dec.Type, _ = datas.GetIntAttribute("m_nType")
+
+	switch dec.Name {
+	case "CCompressedStaticVector4D", "CCompressedFullVector4D":
+		dec.BytesPerBone = 16
+	case "CCompressedStaticFullVector3", "CCompressedFullVector3", "CCompressedDeltaVector3", "CCompressedAnimVector3":
+		dec.BytesPerBone = 12
+	case "CCompressedStaticVector2D", "CCompressedFullVector2D":
+		dec.BytesPerBone = 8
+	case "CCompressedAnimQuaternion", "CCompressedStaticVector3", "CCompressedStaticQuaternion", "CCompressedFullQuaternion":
+		dec.BytesPerBone = 6
+	case "CCompressedFullFloat", "CCompressedStaticFloat", "CCompressedStaticInt", "CCompressedFullInt", "CCompressedStaticColor32", "CCompressedFullColor32":
+		dec.BytesPerBone = 4
+	case "CCompressedFullShort":
+		dec.BytesPerBone = 2
+	case "CCompressedStaticChar", "CCompressedFullChar", "CCompressedStaticBool", "CCompressedFullBool":
+		dec.BytesPerBone = 1
+	default:
+		return errors.New("unknown decoder type: " + dec.Name)
+	}
 
 	return nil
 }

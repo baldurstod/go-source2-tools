@@ -11,6 +11,11 @@ type Segment struct {
 	LocalElementMasks int
 	LocalChannel      int
 	Container         []byte
+	decoderId         uint16
+	bytesPerBone      uint16
+	boneCount         uint16
+	dataLength        uint16
+	bones             []uint16
 }
 
 func (seg *Segment) initFromDatas(datas *kv3.Kv3Element) error {
@@ -29,6 +34,13 @@ func (seg *Segment) initFromDatas(datas *kv3.Kv3Element) error {
 	}
 
 	seg.Container = c
+
+	seg.decoderId = uint16(c[0]) + (uint16(c[1]) << 8)
+	seg.bytesPerBone = uint16(c[2]) + (uint16(c[3]) << 8)
+	seg.boneCount = uint16(c[4]) + (uint16(c[5]) << 8)
+	seg.dataLength = uint16(c[6]) + (uint16(c[7]) << 8)
+
+	seg.bones = make([]uint16, 0, seg.boneCount)
 
 	return nil
 }

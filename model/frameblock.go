@@ -51,8 +51,19 @@ func (fb *frameBlock) GetFrame(frameIndex int) error {
 	frameIndex -= fb.startFrame
 	log.Println(fb.segmentIndex)
 	for _, v := range fb.segmentIndex {
-		fb.block.getSegment(v)
+		seg := fb.block.getSegment(v)
+		fb.readSegment(frameIndex, seg)
 		//log.Println(seg)
 	}
+	return nil
+}
+
+func (fb *frameBlock) readSegment(frameIndex int, segment *Segment) error {
+	decoder := fb.block.decoders[segment.decoderId]
+	log.Println(decoder)
+	channel := fb.group.decodeKey.DataChannels[segment.LocalChannel]
+
+	log.Println(channel)
+
 	return nil
 }

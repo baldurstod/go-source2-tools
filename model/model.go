@@ -271,7 +271,10 @@ func (m *Model) initAnims() error {
 	}
 	log.Println(anim.GetAttributes())
 
-	m.animBlock.initFromDatas(anim)
+	err = m.animBlock.initFromDatas(anim)
+	if err != nil {
+		return fmt.Errorf("error while initializing anim block datas: <%w>", err)
+	}
 
 	err = m.initInternalAnimGroup()
 	if err != nil {

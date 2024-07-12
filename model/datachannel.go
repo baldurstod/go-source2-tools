@@ -2,7 +2,6 @@ package model
 
 import (
 	"errors"
-	"log"
 
 	"github.com/baldurstod/go-source2-tools/kv3"
 )
@@ -59,8 +58,6 @@ func (dc *DataChannel) initFromDatas(datas *kv3.Kv3Element) error {
 	for _, v := range elementMask {
 		dc.elementsMask = append(dc.elementsMask, v.(uint32))
 	}
-
-	log.Println(elementIndex, elementMask)
 
 	return nil
 }

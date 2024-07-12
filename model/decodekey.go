@@ -27,6 +27,7 @@ func (dk *DecodeKey) initFromDatas(datas *kv3.Kv3Element) error {
 	for _, v := range boneArray {
 		bone := newDecodeKeyBone()
 		bone.initFromDatas(v.(*kv3.Kv3Element))
+		dk.addBone(bone)
 	}
 
 	dataChannelArray, ok := datas.GetKv3ValueArrayAttribute("m_dataChannelArray")
@@ -37,6 +38,7 @@ func (dk *DecodeKey) initFromDatas(datas *kv3.Kv3Element) error {
 	for _, v := range dataChannelArray {
 		channel := newDataChannel()
 		channel.initFromDatas(v.(*kv3.Kv3Element))
+		dk.addDataChannel(channel)
 	}
 
 	return nil

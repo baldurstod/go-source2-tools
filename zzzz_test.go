@@ -88,7 +88,15 @@ func TestAnim(t *testing.T) {
 	model.SetFile(file)
 
 	seq, err := model.GetSequence("ACT_DOTA_IDLE", nil)
+	if err != nil {
+		t.Error(err)
+		return
+	}
 	seq, err = model.GetSequenceByName("@rubick_run_haste_turns")
+	if err != nil {
+		t.Error(err)
+		return
+	}
 	/*modifiers := make(map[string]struct{})
 	modifiers["centaur_mount"] = struct{}{}
 	seq, err = model.GetSequence("ACT_DOTA_CAST_ABILITY_5", modifiers)*/
