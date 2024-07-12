@@ -19,14 +19,24 @@ func newDecodeKey() *DecodeKey {
 }
 
 func (dk *DecodeKey) initFromDatas(datas *kv3.Kv3Element) error {
-	m_boneArray, ok := datas.GetKv3ValueArrayAttribute("m_boneArray")
+	boneArray, ok := datas.GetKv3ValueArrayAttribute("m_boneArray")
 	if !ok {
 		return fmt.Errorf("can't get bone array while initializing decode key")
 	}
 
-	for _, v := range m_boneArray {
+	for _, v := range boneArray {
 		bone := newDecodeKeyBone()
 		bone.initFromDatas(v.(*kv3.Kv3Element))
+	}
+
+	dataChannelArray, ok := datas.GetKv3ValueArrayAttribute("m_dataChannelArray")
+	if !ok {
+		return fmt.Errorf("can't get data channel array while initializing decode key")
+	}
+
+	for _, v := range dataChannelArray {
+		channel := newDataChannel()
+		channel.initFromDatas(v.(*kv3.Kv3Element))
 	}
 
 	return nil
