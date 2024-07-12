@@ -31,7 +31,7 @@ func (anim *Animation) initFromDatas(datas *kv3.Kv3Element) error {
 		return errors.New("unable to get animation name")
 	}
 
-	anim.fps, ok = datas.GetFloatAttribute("fps")
+	anim.fps, ok = datas.GetFloat64Attribute("fps")
 	if !ok {
 		anim.fps = 30 //TODO: not sure if we should set a default value
 	}
