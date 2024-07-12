@@ -49,34 +49,38 @@ func (fb *frameBlock) initFromDatas(datas *kv3.Kv3Element) error {
 	return nil
 }
 
-func (fb *frameBlock) GetFrame(frameIndex int) error {
+func (fb *frameBlock) GetFrame(frameIndex int) (*frame, error) {
+	frame := newFrame()
 	frameIndex -= fb.startFrame
 	log.Println(fb.segmentIndex)
 	for _, v := range fb.segmentIndex {
 		seg := fb.block.getSegment(v)
-		err := fb.readSegment(frameIndex, seg)
+		fc, err := fb.readSegment(frameIndex, seg)
 		if err != nil {
-			return fmt.Errorf("error in frameBlock.GetFrame: <%w>", err)
+			return nil, fmt.Errorf("error in frameBlock.GetFrame: <%w>", err)
 		}
+		frame.addChannel(fc)
 		//log.Println(seg)
 	}
-	return nil
+	return frame, nil
 }
 
-func (fb *frameBlock) readSegment(frameIndex int, segment *Segment) error {
+func (fb *frameBlock) readSegment(frameIndex int, segment *Segment) (*frameChannel, error) {
 	decoder := &fb.block.decoders[segment.decoderId]
 	log.Println(decoder)
 	channel := fb.group.decodeKey.getDataChannel(segment.LocalChannel)
 	if channel == nil {
-		return errors.New("can't find channel in readSegment")
+		return nil, errors.New("can't find channel in readSegment")
 	}
 
-	err := segment.decode(frameIndex, channel, decoder)
+	fc := newFrameChannel(channel.channelClass, channel.variableName)
+
+	err := segment.decode(frameIndex, channel, decoder, fc)
 	if err != nil {
-		return fmt.Errorf("error while reading segment: <%w>", err)
+		return nil, fmt.Errorf("error while reading segment: <%w>", err)
 	}
 
 	log.Println(channel)
 
-	return nil
+	return fc, nil
 }

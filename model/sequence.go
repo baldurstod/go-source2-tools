@@ -88,7 +88,7 @@ func (seq *Sequence) GetFrameCount() int {
 	return max(count, 1)
 }
 
-func (seq *Sequence) GetFrame(frameIndex int) error {
+func (seq *Sequence) GetFrame(frameIndex int) (*frame, error) {
 	/*actualSequence := seq.GetActualSequence()
 	if actualSequence != seq {
 		return actualSequence.GetFrame(frameIndex)
@@ -105,7 +105,7 @@ func (seq *Sequence) GetFrame(frameIndex int) error {
 		return anim.GetFrame(frameIndex)
 	}
 
-	return nil
+	return nil, nil
 }
 
 func (seq *Sequence) modifiersScore(modifiers map[string]struct{}) int {

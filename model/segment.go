@@ -85,7 +85,7 @@ func (seg *Segment) initFromDatas(datas *kv3.Kv3Element) error {
 	return nil
 }
 
-func (seg *Segment) decode(frameIndex int, channel *DataChannel, decoder *Decoder) error {
+func (seg *Segment) decode(frameIndex int, channel *DataChannel, decoder *Decoder, fc *frameChannel) error {
 	l := len(channel.elements)
 	segmentToBoneIndex := make(map[int]int, l)
 
@@ -93,12 +93,14 @@ func (seg *Segment) decode(frameIndex int, channel *DataChannel, decoder *Decode
 		segmentToBoneIndex[int(channel.elements[i].index)] = i
 	}
 
+	fc.datas = make([]any, seg.boneCount)
 	for i := 0; i < seg.boneCount; i++ {
 		res, err := decoder.decode(seg.reader, frameIndex, i, seg.boneCount)
 		if err != nil {
 			return fmt.Errorf("error while decoding segment: <%w>", err)
 		}
 
+		fc.datas[i] = res
 		log.Println(res)
 	}
 

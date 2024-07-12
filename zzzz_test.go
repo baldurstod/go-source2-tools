@@ -103,7 +103,14 @@ func TestAnim(t *testing.T) {
 
 	log.Println(seq, err)
 	//model.PrintSequences()
-	log.Println(seq.GetFps(), seq.GetFrameCount(), seq.GetFrame(0))
+	log.Println(seq.GetFps(), seq.GetFrameCount())
+	frame, err := seq.GetFrame(0)
+	if err != nil {
+		t.Error(err)
+		return
+	}
+	log.Println(frame)
+
 }
 
 func DisabledTestRepo(t *testing.T) {

@@ -62,16 +62,17 @@ func (anim *Animation) GetDuration() float64 {
 	return float64(anim.FrameCount-1) / anim.fps
 }
 
-func (anim *Animation) GetFrame(frameIndex int) error {
+func (anim *Animation) GetFrame(frameIndex int) (*frame, error) {
 	for _, fb := range anim.frameBlocks {
 		if fb.startFrame <= frameIndex && fb.endFrame >= frameIndex {
-			err := fb.GetFrame(frameIndex)
+			frame, err := fb.GetFrame(frameIndex)
 			if err != nil {
-				return fmt.Errorf("error in Animation.GetFrame: <%w>", err)
+				return nil, fmt.Errorf("error in Animation.GetFrame: <%w>", err)
 			}
+			return frame, nil
 		}
 	}
 
 	//panic("todo")
-	return nil
+	return nil, nil
 }
