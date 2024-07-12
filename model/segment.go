@@ -15,10 +15,10 @@ type Segment struct {
 	LocalElementMasks int
 	LocalChannel      int
 	Container         []byte
-	decoderId         uint16
-	bytesPerBone      uint16
-	boneCount         uint16
-	dataLength        uint16
+	decoderId         int
+	bytesPerBone      int
+	boneCount         int
+	dataLength        int
 	bones             []uint16
 	reader            *bytes.Reader
 }
@@ -48,22 +48,29 @@ func (seg *Segment) initFromDatas(datas *kv3.Kv3Element) error {
 		seg.dataLength = uint16(c[6]) + (uint16(c[7]) << 8)
 	*/
 
-	err := binary.Read(seg.reader, binary.LittleEndian, &seg.decoderId)
+	var decoderId, bytesPerBone, boneCount, dataLength uint16
+
+	err := binary.Read(seg.reader, binary.LittleEndian, &decoderId)
 	if err != nil {
 		return fmt.Errorf("failed to read segment decoder id: <%w>", err)
 	}
-	binary.Read(seg.reader, binary.LittleEndian, &seg.bytesPerBone)
+	binary.Read(seg.reader, binary.LittleEndian, &bytesPerBone)
 	if err != nil {
 		return fmt.Errorf("failed to read segment bytes per bone: <%w>", err)
 	}
-	binary.Read(seg.reader, binary.LittleEndian, &seg.boneCount)
+	binary.Read(seg.reader, binary.LittleEndian, &boneCount)
 	if err != nil {
 		return fmt.Errorf("failed to read segment bone count: <%w>", err)
 	}
-	binary.Read(seg.reader, binary.LittleEndian, &seg.dataLength)
+	binary.Read(seg.reader, binary.LittleEndian, &dataLength)
 	if err != nil {
 		return fmt.Errorf("failed to read segment data length: <%w>", err)
 	}
+
+	seg.decoderId = int(decoderId)
+	seg.bytesPerBone = int(bytesPerBone)
+	seg.boneCount = int(boneCount)
+	seg.dataLength = int(dataLength)
 
 	seg.bones = make([]uint16, seg.boneCount)
 	for i := 0; i < int(seg.boneCount); i++ {
@@ -74,6 +81,24 @@ func (seg *Segment) initFromDatas(datas *kv3.Kv3Element) error {
 	}
 
 	log.Println(seg.bones)
+
+	return nil
+}
+
+func (seg *Segment) decode(frameIndex int, channel *DataChannel, decoder *Decoder) error {
+	l := len(channel.elements)
+	segmentToBoneIndex := make(map[int]int, l)
+
+	for i := 0; i < l; i++ {
+		segmentToBoneIndex[int(channel.elements[i].index)] = i
+	}
+
+	for i := 0; i < seg.boneCount; i++ {
+		err := decoder.decode(seg.reader, frameIndex, seg.boneCount)
+		if err != nil {
+			return fmt.Errorf("error while decoding segment: <%w>", err)
+		}
+	}
 
 	return nil
 }

@@ -7,6 +7,7 @@ require (
 	github.com/baldurstod/go-vector v0.0.3
 	github.com/klauspost/compress v1.17.9
 	github.com/pierrec/lz4/v4 v4.1.21
+	github.com/x448/float16 v0.8.4
 )
 
 require golang.org/x/exp v0.0.0-20240613232115-7f521ea00fb8 // indirect

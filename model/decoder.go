@@ -1,9 +1,15 @@
 package model
 
 import (
+	"bytes"
+	"encoding/binary"
 	"errors"
+	"fmt"
+	"io"
+	"log"
 
 	"github.com/baldurstod/go-source2-tools/kv3"
+	"github.com/x448/float16"
 )
 
 type Decoder struct {
@@ -43,6 +49,26 @@ func (dec *Decoder) initFromDatas(datas *kv3.Kv3Element) error {
 	}
 
 	return nil
+}
+
+func (dec *Decoder) decode(reader *bytes.Reader, frameIndex int, boneCount int) error {
+	switch dec.Name {
+	case "CCompressedStaticVector3":
+		//reader.Seek(int64(8+boneCount*(2+frameIndex*dec.BytesPerBone)), io.SeekStart)
+		reader.Seek(int64(8+boneCount*2), io.SeekStart)
+		v := [3]uint16{}
+
+		err := binary.Read(reader, binary.LittleEndian, &v)
+		if err != nil {
+			return fmt.Errorf("failed to read segment bone count: <%w>", err)
+		}
+
+		log.Println(float16.Frombits(v[0]), float16.Frombits(v[1]), float16.Frombits(v[2]))
+
+		return nil
+	default:
+		return errors.New("unknown decoder type: " + dec.Name)
+	}
 }
 
 /*
