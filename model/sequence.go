@@ -85,7 +85,7 @@ func (seq *Sequence) GetFrameCount() int {
 		}
 	}
 
-	return count
+	return max(count, 1)
 }
 
 func (seq *Sequence) GetFrame(frameIndex int) error {
