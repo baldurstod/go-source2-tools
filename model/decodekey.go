@@ -51,3 +51,11 @@ func (dk *DecodeKey) addBone(bone *DecodeKeyBone) {
 func (dk *DecodeKey) addDataChannel(dc *DataChannel) {
 	dk.DataChannels = append(dk.DataChannels, dc)
 }
+
+func (dk *DecodeKey) getDataChannel(index int) *DataChannel {
+	if index < 0 || index >= len(dk.DataChannels) {
+		return nil
+	}
+
+	return dk.DataChannels[index]
+}
