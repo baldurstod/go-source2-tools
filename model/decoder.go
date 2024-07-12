@@ -99,6 +99,16 @@ func (dec *Decoder) decode(reader *bytes.Reader, frameIndex int, boneIndex int, 
 		}
 
 		return v, nil
+	case "CCompressedFullVector3":
+		reader.Seek(int64(8+boneCount*(2+frameIndex*dec.BytesPerBone)+boneIndex*dec.BytesPerBone), io.SeekStart)
+		v := vector.Vector3[float32]{}
+
+		err := binary.Read(reader, binary.LittleEndian, &v)
+		if err != nil {
+			return nil, fmt.Errorf("failed to read CCompressedStaticFullVector3: <%w>", err)
+		}
+
+		return v, nil
 	default:
 		return nil, errors.New("unknown decoder type: " + dec.Name)
 	}
