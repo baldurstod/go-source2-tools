@@ -54,15 +54,15 @@ func (seg *Segment) initFromDatas(datas *kv3.Kv3Element) error {
 	if err != nil {
 		return fmt.Errorf("failed to read segment decoder id: <%w>", err)
 	}
-	binary.Read(seg.reader, binary.LittleEndian, &bytesPerBone)
+	err = binary.Read(seg.reader, binary.LittleEndian, &bytesPerBone)
 	if err != nil {
 		return fmt.Errorf("failed to read segment bytes per bone: <%w>", err)
 	}
-	binary.Read(seg.reader, binary.LittleEndian, &boneCount)
+	err = binary.Read(seg.reader, binary.LittleEndian, &boneCount)
 	if err != nil {
 		return fmt.Errorf("failed to read segment bone count: <%w>", err)
 	}
-	binary.Read(seg.reader, binary.LittleEndian, &dataLength)
+	err = binary.Read(seg.reader, binary.LittleEndian, &dataLength)
 	if err != nil {
 		return fmt.Errorf("failed to read segment data length: <%w>", err)
 	}
