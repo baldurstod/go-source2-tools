@@ -55,32 +55,32 @@ func (fb *frameBlock) GetFrame(frameIndex int) (*frame, error) {
 	log.Println(fb.segmentIndex)
 	for _, v := range fb.segmentIndex {
 		seg := fb.block.getSegment(v)
-		fc, err := fb.readSegment(frameIndex, seg)
+		err := fb.readSegment(frameIndex, seg, frame)
 		if err != nil {
 			return nil, fmt.Errorf("error in frameBlock.GetFrame: <%w>", err)
 		}
-		frame.addChannel(fc)
+		//frame.addChannel(fc)
 		//log.Println(seg)
 	}
 	return frame, nil
 }
 
-func (fb *frameBlock) readSegment(frameIndex int, segment *Segment) (*frameChannel, error) {
+func (fb *frameBlock) readSegment(frameIndex int, segment *Segment, f *frame) error {
 	decoder := &fb.block.decoders[segment.decoderId]
 	log.Println(decoder)
 	channel := fb.group.decodeKey.getDataChannel(segment.LocalChannel)
 	if channel == nil {
-		return nil, errors.New("can't find channel in readSegment")
+		return errors.New("can't find channel in readSegment")
 	}
 
-	fc := newFrameChannel(channel.channelClass, channel.variableName)
+	fc := f.getChannel(channel.channelClass, channel.variableName, channel)
 
 	err := segment.decode(frameIndex, channel, decoder, fc)
 	if err != nil {
-		return nil, fmt.Errorf("error while reading segment: <%w>", err)
+		return fmt.Errorf("error while reading segment: <%w>", err)
 	}
 
 	log.Println(channel)
 
-	return fc, nil
+	return nil
 }

@@ -10,12 +10,18 @@ func newFrame() *frame {
 	}
 }
 
-func (f *frame) addChannel(fc *frameChannel) {
-	m, ok := f.channels[fc.channelClass]
+func (f *frame) getChannel(channelClass string, variableName string, dc *DataChannel) *frameChannel {
+	m, ok := f.channels[channelClass]
 	if !ok {
 		m = make(map[string]*frameChannel)
-		f.channels[fc.channelClass] = m
+		f.channels[channelClass] = m
 	}
 
-	m[fc.variableName] = fc
+	fc, ok := m[variableName]
+	if !ok {
+		fc = newFrameChannel(channelClass, variableName, dc)
+		m[variableName] = fc
+	}
+
+	return fc
 }
