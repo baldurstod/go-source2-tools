@@ -92,18 +92,18 @@ func TestAnim(t *testing.T) {
 		t.Error(err)
 		return
 	}
-	seq, err = model.GetSequenceByName("@rubick_run_haste_turns")
+	/*seq, err = model.GetSequenceByName("@rubick_run_haste_turns")
 	if err != nil {
 		t.Error(err)
 		return
-	}
+	}*/
 	/*modifiers := make(map[string]struct{})
 	modifiers["centaur_mount"] = struct{}{}
 	seq, err = model.GetSequence("ACT_DOTA_CAST_ABILITY_5", modifiers)*/
 
 	log.Println(seq, err)
 	//model.PrintSequences()
-	log.Println(seq.GetFps(), seq.GetFrameCount(), seq.GetFrame(1))
+	log.Println(seq.GetFps(), seq.GetFrameCount(), seq.GetFrame(0))
 }
 
 func DisabledTestRepo(t *testing.T) {
