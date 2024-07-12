@@ -94,10 +94,12 @@ func (seg *Segment) decode(frameIndex int, channel *DataChannel, decoder *Decode
 	}
 
 	for i := 0; i < seg.boneCount; i++ {
-		err := decoder.decode(seg.reader, frameIndex, seg.boneCount)
+		res, err := decoder.decode(seg.reader, frameIndex, i, seg.boneCount)
 		if err != nil {
 			return fmt.Errorf("error while decoding segment: <%w>", err)
 		}
+
+		log.Println(res)
 	}
 
 	return nil

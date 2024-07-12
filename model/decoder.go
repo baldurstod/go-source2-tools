@@ -6,9 +6,9 @@ import (
 	"errors"
 	"fmt"
 	"io"
-	"log"
 
 	"github.com/baldurstod/go-source2-tools/kv3"
+	"github.com/baldurstod/go-vector"
 	"github.com/x448/float16"
 )
 
@@ -51,23 +51,34 @@ func (dec *Decoder) initFromDatas(datas *kv3.Kv3Element) error {
 	return nil
 }
 
-func (dec *Decoder) decode(reader *bytes.Reader, frameIndex int, boneCount int) error {
+func (dec *Decoder) decode(reader *bytes.Reader, frameIndex int, boneIndex int, boneCount int) (any, error) {
 	switch dec.Name {
 	case "CCompressedStaticVector3":
-		//reader.Seek(int64(8+boneCount*(2+frameIndex*dec.BytesPerBone)), io.SeekStart)
-		reader.Seek(int64(8+boneCount*2), io.SeekStart)
+		reader.Seek(int64(8+boneCount*2+boneIndex*dec.BytesPerBone), io.SeekStart)
 		v := [3]uint16{}
 
 		err := binary.Read(reader, binary.LittleEndian, &v)
 		if err != nil {
-			return fmt.Errorf("failed to read segment bone count: <%w>", err)
+			return nil, fmt.Errorf("failed to read segment bone count: <%w>", err)
 		}
 
-		log.Println(float16.Frombits(v[0]), float16.Frombits(v[1]), float16.Frombits(v[2]))
+		return vector.Vector3[float32]{
+			float16.Frombits(v[0]).Float32(),
+			float16.Frombits(v[1]).Float32(),
+			float16.Frombits(v[2]).Float32(),
+		}, nil
+	case "CCompressedStaticFullVector3":
+		reader.Seek(int64(8+boneCount*2+boneIndex*dec.BytesPerBone), io.SeekStart)
+		v := vector.Vector3[float32]{}
 
-		return nil
+		err := binary.Read(reader, binary.LittleEndian, &v)
+		if err != nil {
+			return nil, fmt.Errorf("failed to read segment bone count: <%w>", err)
+		}
+
+		return v, nil
 	default:
-		return errors.New("unknown decoder type: " + dec.Name)
+		return nil, errors.New("unknown decoder type: " + dec.Name)
 	}
 }
 
