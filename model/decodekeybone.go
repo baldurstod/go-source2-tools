@@ -3,7 +3,6 @@ package model
 import (
 	"errors"
 	"fmt"
-	"log"
 
 	"github.com/baldurstod/go-source2-tools/kv3"
 	"github.com/baldurstod/go-vector"
@@ -39,13 +38,23 @@ func (bone *DecodeKeyBone) initFromDatas(datas *kv3.Kv3Element) error {
 	if err != nil {
 		return fmt.Errorf("unable to get bone position: <%w>", err)
 	}
-	log.Println(v)
+	bone.pos = *v
 
 	q, err := datas.GetQuatAttribute("m_quat")
 	if err != nil {
 		return fmt.Errorf("unable to get bone quaternion: <%w>", err)
 	}
-	log.Println(q)
+	bone.quat = *q
+
+	bone.scale, ok = datas.GetFloat32Attribute("m_scale")
+	if !ok {
+		bone.scale = 1.0
+	}
+
+	q, _ = datas.GetQuatAttribute("m_quat")
+	bone.alignement = *q
+
+	bone.flags, _ = datas.GetIntAttribute("m_flags")
 
 	return nil
 }
