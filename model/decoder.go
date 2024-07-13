@@ -86,7 +86,7 @@ func (dec *Decoder) decode(reader *bytes.Reader, frameIndex int, boneIndex int, 
 			return nil, fmt.Errorf("failed to read CCompressedAnimQuaternion: <%w>", err)
 		}
 
-		return readQuaternion48(buf), nil
+		return *readQuaternion48(buf), nil
 	case "CCompressedDeltaVector3":
 		//TODO: no sure how this block is supposed to work
 		frameIndex = 0
