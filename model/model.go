@@ -269,7 +269,7 @@ func (m *Model) initAnims() error {
 	if err != nil {
 		return fmt.Errorf("can't find ANIM block: <%w>", err)
 	}
-	log.Println(anim.GetAttributes())
+	//log.Println(anim.GetAttributes())
 
 	err = m.animBlock.initFromDatas(anim)
 	if err != nil {

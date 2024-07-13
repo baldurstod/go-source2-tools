@@ -67,7 +67,7 @@ func (fb *frameBlock) GetFrame(frameIndex int) (*frame, error) {
 
 func (fb *frameBlock) readSegment(frameIndex int, segment *Segment, f *frame) error {
 	decoder := &fb.block.decoders[segment.decoderId]
-	log.Println(decoder)
+	//log.Println(decoder)
 	channel := fb.group.decodeKey.getDataChannel(segment.LocalChannel)
 	if channel == nil {
 		return errors.New("can't find channel in readSegment")

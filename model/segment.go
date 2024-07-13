@@ -5,7 +5,6 @@ import (
 	"encoding/binary"
 	"errors"
 	"fmt"
-	"log"
 
 	"github.com/baldurstod/go-source2-tools/kv3"
 )
@@ -80,7 +79,7 @@ func (seg *Segment) initFromDatas(datas *kv3.Kv3Element) error {
 		}
 	}
 
-	log.Println(seg.bones)
+	//log.Println(seg.bones)
 
 	return nil
 }
