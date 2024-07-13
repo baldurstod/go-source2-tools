@@ -25,3 +25,17 @@ func (f *frame) getChannel(channelClass string, variableName string, dc *DataCha
 
 	return fc
 }
+
+func (f *frame) GetChannel(channelClass string, variableName string) *frameChannel {
+	m, ok := f.channels[channelClass]
+	if !ok {
+		return nil
+	}
+
+	fc, ok := m[variableName]
+	if !ok {
+		return nil
+	}
+
+	return fc
+}
