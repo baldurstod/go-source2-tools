@@ -6,20 +6,20 @@ type frameChannelData struct {
 }
 
 type frameChannel struct {
-	channelClass string
-	variableName string
-	datas        []frameChannelData
+	ChannelClass string
+	VariableName string
+	Datas        []frameChannelData
 }
 
 func newFrameChannel(channelClass string, variableName string, dc *DataChannel) *frameChannel {
 	fc := frameChannel{
-		channelClass: channelClass,
-		variableName: variableName,
-		datas:        make([]frameChannelData, len(dc.elements)),
+		ChannelClass: channelClass,
+		VariableName: variableName,
+		Datas:        make([]frameChannelData, len(dc.elements)),
 	}
 
 	for k, v := range dc.elements {
-		fc.datas[k].name = v.name
+		fc.Datas[k].name = v.name
 	}
 
 	return &fc

@@ -80,7 +80,7 @@ func (fb *frameBlock) readSegment(frameIndex int, segment *Segment, f *frame) er
 		return fmt.Errorf("error while reading segment: <%w>", err)
 	}
 
-	log.Println(channel)
+	//log.Println(channel)
 
 	return nil
 }

@@ -101,10 +101,10 @@ func (seg *Segment) decode(frameIndex int, channel *DataChannel, decoder *Decode
 		}
 
 		//boneId := seg.bones[i]
-		fc.datas[segmentToBoneIndex[int(seg.bones[i])]].datas = res
+		fc.Datas[segmentToBoneIndex[int(seg.bones[i])]].datas = res
 
 		//fc.datas[i] = res
-		log.Println(res)
+		//log.Println(res)
 	}
 
 	return nil
