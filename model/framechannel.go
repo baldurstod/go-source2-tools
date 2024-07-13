@@ -1,8 +1,8 @@
 package model
 
 type frameChannelData struct {
-	name  string
-	datas any
+	Name  string
+	Datas any
 }
 
 type frameChannel struct {
@@ -19,7 +19,7 @@ func newFrameChannel(channelClass string, variableName string, dc *DataChannel) 
 	}
 
 	for k, v := range dc.elements {
-		fc.Datas[k].name = v.name
+		fc.Datas[k].Name = v.name
 	}
 
 	return &fc

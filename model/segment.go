@@ -101,7 +101,7 @@ func (seg *Segment) decode(frameIndex int, channel *DataChannel, decoder *Decode
 		}
 
 		//boneId := seg.bones[i]
-		fc.Datas[segmentToBoneIndex[int(seg.bones[i])]].datas = res
+		fc.Datas[segmentToBoneIndex[int(seg.bones[i])]].Datas = res
 
 		//fc.datas[i] = res
 		//log.Println(res)
