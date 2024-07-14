@@ -19,6 +19,7 @@ type Model struct {
 	sequencesInitialized bool
 	animGroups           map[*AnimGroup]struct{}
 	animBlock            *AnimBlock
+	flexes               []FlexController
 }
 
 func NewModel() *Model {
@@ -305,4 +306,40 @@ func (m *Model) initInternalAnimGroup() error {
 	m.animGroups[animGroup] = struct{}{}
 
 	return nil
+}
+
+func (m *Model) GetFlexes() ([]FlexController, error) {
+	if m.flexes != nil {
+		return m.flexes, nil
+	}
+
+	f, err := m.initFlexes()
+	if err != nil {
+		return nil, err
+	}
+	m.flexes = f
+
+	return f, nil
+}
+
+func (m *Model) initFlexes() ([]FlexController, error) {
+	if m.file == nil {
+		return nil, errors.New("model don't have a file")
+	}
+
+	mrph, err := m.file.GetBlockStructAsKv3Element("MRPH")
+	if err != nil {
+		return nil, fmt.Errorf("can't find MRPH block: <%w>", err)
+	}
+
+	flexControllers, _ := mrph.GetKv3ValueArrayAttribute("m_FlexControllers")
+
+	controllers := make([]FlexController, 0, len(flexControllers))
+	for _, v := range flexControllers {
+		fc := FlexController{}
+		fc.initFromDatas(v.(*kv3.Kv3Element))
+		controllers = append(controllers, fc)
+	}
+
+	return controllers, nil
 }

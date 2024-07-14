@@ -95,6 +95,13 @@ func TestAnim(t *testing.T) {
 	}
 	log.Println(skel)
 
+	flexes, err := model.GetFlexes()
+	if err != nil {
+		t.Error(err)
+		return
+	}
+	log.Println(flexes)
+
 	seq, err := model.GetSequence("ACT_DOTA_IDLE", nil)
 	if err != nil {
 		t.Error(err)
