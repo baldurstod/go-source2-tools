@@ -43,7 +43,7 @@ func (fb *frameBlock) initFromDatas(datas *kv3.Kv3Element) error {
 	segmentIndex, _ := datas.GetKv3ValueArrayAttribute("m_segmentIndexArray")
 	fb.segmentIndex = make([]int, 0, len(segmentIndex))
 	for _, v := range segmentIndex {
-		fb.segmentIndex = append(fb.segmentIndex, int(v.(int32)))
+		fb.segmentIndex = append(fb.segmentIndex, kv3.Kv3ValueToInt(v))
 	}
 	return nil
 }
@@ -53,7 +53,7 @@ func (fb *frameBlock) GetFrame(frameIndex int) (*frame, error) {
 	frameIndex -= fb.startFrame
 	//log.Println(fb.segmentIndex)
 	for _, v := range fb.segmentIndex {
-		seg := fb.block.getSegment(v)
+		seg := fb.block.getSegment(int(v))
 		err := fb.readSegment(frameIndex, seg, frame)
 		if err != nil {
 			return nil, fmt.Errorf("error in frameBlock.GetFrame: <%w>", err)

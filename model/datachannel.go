@@ -8,8 +8,8 @@ import (
 
 type DataChannelElement struct {
 	name  string
-	index int32
-	mask  uint32
+	index int64
+	mask  int64
 }
 
 type DataChannel struct {
@@ -69,8 +69,8 @@ func (dc *DataChannel) initFromDatas(datas *kv3.Kv3Element) error {
 	for i := 0; i < l; i++ {
 		elem := &dc.elements[i]
 		elem.name = elementName[i].(string)
-		elem.index = elementIndex[i].(int32)
-		elem.mask = elementMask[i].(uint32)
+		elem.index = kv3.Kv3ValueToInt64(elementIndex[i])
+		elem.mask = kv3.Kv3ValueToInt64(elementMask[i])
 	}
 
 	return nil

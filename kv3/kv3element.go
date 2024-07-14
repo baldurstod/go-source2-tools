@@ -275,6 +275,3 @@ func valueToString(v any, tabs int) string {
 
 	return ""
 }
-
-type Kv3Value interface {
-}
