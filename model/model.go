@@ -124,7 +124,7 @@ func (m *Model) initSkeleton() (*Skeleton, error) {
 			return nil, fmt.Errorf("can't get bone id: %d <%w>", i, err)
 		}
 
-		p := boneParentArray[i].(int32)
+		p := kv3.Kv3ValueToInt(boneParentArray[i])
 		if p != -1 {
 			parentBone, err := s.GetBoneById(int(p))
 			if err != nil {

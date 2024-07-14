@@ -75,6 +75,7 @@ func TestAnim(t *testing.T) {
 	filename = "void_spirit.vmdl_c"
 	filename = "models/heroes/wisp/wisp.vmdl_c"
 	filename = "models/heroes/rubick/rubick.vmdl_c"
+	filename = "models/heroes/terrorblade/terrorblade.vmdl_c"
 
 	//b, _ := os.ReadFile(path.Join(varFolder, filename))
 	file, err := parser.Parse("dota2", filename)
@@ -86,6 +87,13 @@ func TestAnim(t *testing.T) {
 
 	model := model.NewModel()
 	model.SetFile(file)
+
+	skel, err := model.GetSkeleton()
+	if err != nil {
+		t.Error(err)
+		return
+	}
+	log.Println(skel)
 
 	seq, err := model.GetSequence("ACT_DOTA_IDLE", nil)
 	if err != nil {
