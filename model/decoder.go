@@ -90,15 +90,32 @@ func (dec *Decoder) decode(reader *bytes.Reader, frameIndex int, boneIndex int, 
 	case "CCompressedDeltaVector3":
 		//TODO: no sure how this block is supposed to work
 		frameIndex = 0
-		reader.Seek(int64(8+boneCount*(2+frameIndex*dec.BytesPerBone)+boneIndex*dec.BytesPerBone), io.SeekStart)
-		v := vector.Vector3[float32]{}
+		baseBytesPerBone := 4 * 3
+		deltaBytesPerBone := 2 * 2
 
-		err := binary.Read(reader, binary.LittleEndian, &v)
+		reader.Seek(int64(8+boneCount*2+boneIndex*baseBytesPerBone), io.SeekStart)
+		base := vector.Vector3[float32]{}
+
+		err := binary.Read(reader, binary.LittleEndian, &base)
 		if err != nil {
 			return nil, fmt.Errorf("failed to read CCompressedDeltaVector3: <%w>", err)
 		}
 
-		return v, nil
+		reader.Seek(int64(8+boneCount*(2+baseBytesPerBone)+boneCount*frameIndex*deltaBytesPerBone+boneIndex*deltaBytesPerBone), io.SeekStart)
+		v := [3]uint16{}
+
+		err = binary.Read(reader, binary.LittleEndian, &v)
+		if err != nil {
+			return nil, fmt.Errorf("failed to read CCompressedDeltaVector3: <%w>", err)
+		}
+
+		delta := vector.Vector3[float32]{
+			float16.Frombits(v[0]).Float32(),
+			float16.Frombits(v[1]).Float32(),
+			float16.Frombits(v[2]).Float32(),
+		}
+		base.Add(&delta)
+		return base, nil
 	case "CCompressedFullVector3":
 		reader.Seek(int64(8+boneCount*(2+frameIndex*dec.BytesPerBone)+boneIndex*dec.BytesPerBone), io.SeekStart)
 		v := vector.Vector3[float32]{}

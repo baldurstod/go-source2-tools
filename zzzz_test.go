@@ -122,7 +122,7 @@ func TestAnim(t *testing.T) {
 	log.Println(seq, err)
 	//model.PrintSequences()
 	log.Println(seq.GetFps(), seq.GetFrameCount())
-	frame, err := seq.GetFrame(0)
+	frame, err := seq.GetFrame(30)
 	if err != nil {
 		t.Error(err)
 		return
