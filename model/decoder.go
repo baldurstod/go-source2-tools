@@ -95,7 +95,7 @@ func (dec *Decoder) decode(reader *bytes.Reader, frameIndex int, boneIndex int, 
 
 		err := binary.Read(reader, binary.LittleEndian, &v)
 		if err != nil {
-			return nil, fmt.Errorf("failed to read CCompressedStaticFullVector3: <%w>", err)
+			return nil, fmt.Errorf("failed to read CCompressedDeltaVector3: <%w>", err)
 		}
 
 		return v, nil
@@ -115,7 +115,7 @@ func (dec *Decoder) decode(reader *bytes.Reader, frameIndex int, boneIndex int, 
 
 		err := binary.Read(reader, binary.LittleEndian, &f)
 		if err != nil {
-			return nil, fmt.Errorf("failed to read CCompressedStaticFullVector3: <%w>", err)
+			return nil, fmt.Errorf("failed to read CCompressedStaticFloat: <%w>", err)
 		}
 
 		return f, nil
