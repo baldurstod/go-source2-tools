@@ -89,7 +89,7 @@ func (dec *Decoder) decode(reader *bytes.Reader, frameIndex int, boneIndex int, 
 		return *readQuaternion48(buf), nil
 	case "CCompressedDeltaVector3":
 		baseBytesPerBone := 4 * 3
-		deltaBytesPerBone := 2 * 2
+		deltaBytesPerBone := 2 * 3
 
 		reader.Seek(int64(8+boneCount*2+boneIndex*baseBytesPerBone), io.SeekStart)
 		base := vector.Vector3[float32]{}
