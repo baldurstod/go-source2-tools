@@ -76,6 +76,7 @@ func TestAnim(t *testing.T) {
 	filename = "models/heroes/wisp/wisp.vmdl_c"
 	filename = "models/heroes/rubick/rubick.vmdl_c"
 	filename = "models/heroes/terrorblade/terrorblade.vmdl_c"
+	filename = "models/heroes/dawnbreaker/dawnbreaker.vmdl_c"
 
 	//b, _ := os.ReadFile(path.Join(varFolder, filename))
 	file, err := parser.Parse("dota2", filename)
@@ -102,7 +103,9 @@ func TestAnim(t *testing.T) {
 	}
 	log.Println(flexes)
 
-	seq, err := model.GetSequence("ACT_DOTA_IDLE", nil)
+	modifiers := make(map[string]struct{})
+	modifiers["PostGameIdle"] = struct{}{}
+	seq, err := model.GetSequence("ACT_DOTA_LOADOUT", modifiers)
 	if err != nil {
 		t.Error(err)
 		return

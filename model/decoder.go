@@ -117,7 +117,15 @@ func (dec *Decoder) decode(reader *bytes.Reader, frameIndex int, boneIndex int, 
 		if err != nil {
 			return nil, fmt.Errorf("failed to read CCompressedStaticFloat: <%w>", err)
 		}
+		return f, nil
+	case "CCompressedFullFloat":
+		reader.Seek(int64(8+boneCount*(2+frameIndex*dec.BytesPerBone)+boneIndex*dec.BytesPerBone), io.SeekStart)
+		var f float32
 
+		err := binary.Read(reader, binary.LittleEndian, &f)
+		if err != nil {
+			return nil, fmt.Errorf("failed to read CCompressedFullFloat: <%w>", err)
+		}
 		return f, nil
 	default:
 		return nil, errors.New("unknown decoder type: " + dec.Name)
