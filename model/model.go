@@ -329,7 +329,7 @@ func (m *Model) initFlexes() ([]FlexController, error) {
 
 	mrph, err := m.file.GetBlockStructAsKv3Element("MRPH")
 	if err != nil {
-		return nil, fmt.Errorf("can't find MRPH block: <%w>", err)
+		return make([]FlexController, 0), nil
 	}
 
 	flexControllers, _ := mrph.GetKv3ValueArrayAttribute("m_FlexControllers")
@@ -337,7 +337,11 @@ func (m *Model) initFlexes() ([]FlexController, error) {
 	controllers := make([]FlexController, 0, len(flexControllers))
 	for _, v := range flexControllers {
 		fc := FlexController{}
-		fc.initFromDatas(v.(*kv3.Kv3Element))
+		err := fc.initFromDatas(v.(*kv3.Kv3Element))
+		if err != nil {
+			return nil, fmt.Errorf("error while initializing flexes: <%w>", err)
+		}
+
 		controllers = append(controllers, fc)
 	}
 
