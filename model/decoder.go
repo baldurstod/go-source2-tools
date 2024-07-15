@@ -88,8 +88,6 @@ func (dec *Decoder) decode(reader *bytes.Reader, frameIndex int, boneIndex int, 
 
 		return *readQuaternion48(buf), nil
 	case "CCompressedDeltaVector3":
-		//TODO: no sure how this block is supposed to work
-		frameIndex = 0
 		baseBytesPerBone := 4 * 3
 		deltaBytesPerBone := 2 * 2
 
