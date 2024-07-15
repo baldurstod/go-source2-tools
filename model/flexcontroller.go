@@ -32,6 +32,14 @@ func (fc *FlexController) initFromDatas(datas *kv3.Kv3Element) error {
 	return nil
 }
 
+// Return the root of a linear interpolation between min and max
+func (fc *FlexController) GetDefaultValue() float32 {
+	if fc.Max == fc.Min {
+		return 0
+	}
+	return -fc.Min / (fc.Max - fc.Min)
+}
+
 /*
 	{
 		m_szName = "innerBrowRaiser"
