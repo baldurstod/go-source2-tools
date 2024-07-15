@@ -40,6 +40,13 @@ func (fc *FlexController) GetDefaultValue() float32 {
 	return -fc.Min / (fc.Max - fc.Min)
 }
 
+func (fc *FlexController) GetControllerValue(goal float32) float32 {
+	if fc.Max == fc.Min {
+		return 0
+	}
+	return (goal - fc.Min) / (fc.Max - fc.Min)
+}
+
 /*
 	{
 		m_szName = "innerBrowRaiser"
