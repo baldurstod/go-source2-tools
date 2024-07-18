@@ -29,7 +29,7 @@ func DisabledTestFiles(t *testing.T) {
 	}
 }
 
-func DisabledTestModel(t *testing.T) {
+func TestModel(t *testing.T) {
 	log.SetFlags(log.LstdFlags | log.Lshortfile)
 
 	var filename string
@@ -41,12 +41,13 @@ func DisabledTestModel(t *testing.T) {
 	filename = "dragon_knight.vmdl_c"
 	filename = "void_spirit.vmdl_c"
 	filename = "wisp.vmdl_c"
+	filename = "models/items/dawnbreaker/dawnbreaker_astral_angel_armor/dawnbreaker_astral_angel_armor.vmdl_c"
 
-	//b, _ := os.ReadFile(path.Join(varFolder, filename))
 	file, err := parser.Parse("dota2", filename)
 	if err != nil {
 		log.Println(err)
 		t.Error(err)
+		return
 	}
 
 	model := model.NewModel()
@@ -63,7 +64,6 @@ func DisabledTestModel(t *testing.T) {
 
 func TestAnim(t *testing.T) {
 	log.SetFlags(log.LstdFlags | log.Lshortfile)
-	initRepo()
 
 	var filename string
 	filename = "pedestal_1.vmdl_c"
@@ -133,7 +133,6 @@ func TestAnim(t *testing.T) {
 
 func DisabledTestRepo(t *testing.T) {
 	log.SetFlags(log.LstdFlags | log.Lshortfile)
-	initRepo()
 	repo := repository.GetRepository("dota2")
 	if repo == nil {
 		t.Error("repo not found")
