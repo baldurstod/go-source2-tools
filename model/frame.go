@@ -1,16 +1,16 @@
 package model
 
-type frame struct {
+type Frame struct {
 	channels map[string]map[string]*frameChannel
 }
 
-func newFrame() *frame {
-	return &frame{
+func newFrame() *Frame {
+	return &Frame{
 		channels: make(map[string]map[string]*frameChannel),
 	}
 }
 
-func (f *frame) getChannel(channelClass string, variableName string, dc *DataChannel) *frameChannel {
+func (f *Frame) getChannel(channelClass string, variableName string, dc *DataChannel) *frameChannel {
 	m, ok := f.channels[channelClass]
 	if !ok {
 		m = make(map[string]*frameChannel)
@@ -26,7 +26,7 @@ func (f *frame) getChannel(channelClass string, variableName string, dc *DataCha
 	return fc
 }
 
-func (f *frame) GetChannel(channelClass string, variableName string) *frameChannel {
+func (f *Frame) GetChannel(channelClass string, variableName string) *frameChannel {
 	m, ok := f.channels[channelClass]
 	if !ok {
 		return nil

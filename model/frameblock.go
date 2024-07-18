@@ -48,7 +48,7 @@ func (fb *frameBlock) initFromDatas(datas *kv3.Kv3Element) error {
 	return nil
 }
 
-func (fb *frameBlock) GetFrame(frameIndex int) (*frame, error) {
+func (fb *frameBlock) GetFrame(frameIndex int) (*Frame, error) {
 	frame := newFrame()
 	frameIndex -= fb.startFrame
 	//log.Println(fb.segmentIndex)
@@ -64,7 +64,7 @@ func (fb *frameBlock) GetFrame(frameIndex int) (*frame, error) {
 	return frame, nil
 }
 
-func (fb *frameBlock) readSegment(frameIndex int, segment *Segment, f *frame) error {
+func (fb *frameBlock) readSegment(frameIndex int, segment *Segment, f *Frame) error {
 	decoder := &fb.block.decoders[segment.decoderId]
 	//log.Println(decoder)
 	channel := fb.group.decodeKey.getDataChannel(segment.LocalChannel)

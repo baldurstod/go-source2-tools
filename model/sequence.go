@@ -88,7 +88,7 @@ func (seq *Sequence) GetFrameCount() int {
 	return max(count, 1)
 }
 
-func (seq *Sequence) GetFrame(frameIndex int) (*frame, error) {
+func (seq *Sequence) GetFrame(frameIndex int) (*Frame, error) {
 	/*actualSequence := seq.GetActualSequence()
 	if actualSequence != seq {
 		return actualSequence.GetFrame(frameIndex)
