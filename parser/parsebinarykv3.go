@@ -41,7 +41,7 @@ func ParseKv3(b []byte, version int, singleByteCount uint32, quadByteCount uint3
 			uncompressedLength := blobCount * 4
 			compressedEnd := blobOffset + uncompressedLength
 			uncompressedBlobSizeReader = bytes.NewReader(b[blobOffset : blobOffset+uncompressedLength])
-			compressedBlobSizeReader = bytes.NewReader(b[compressedEnd+4 : compressedEnd+4+blobCount*2])
+			compressedBlobSizeReader = bytes.NewReader(b[compressedEnd+4:])
 		} else {
 			if uncompressedBlobReader != nil {
 				uncompressedBlobSizeReader = bytes.NewReader(b[blobEnd-blobCount*4 : blobEnd])
@@ -253,24 +253,24 @@ func parseBinaryKv3Element(context *parseKv3Context, quadReader *bytes.Reader, e
 					return nil, fmt.Errorf("failed to read uncompressedBlobSize in parseBinaryKv3Element: <%w>", err)
 				}
 
-				err = binary.Read(compressedBlobSizeReader, binary.LittleEndian, &compressedBlobSize)
-				if err != nil {
-					return nil, fmt.Errorf("failed to read compressedBlobSize in parseBinaryKv3Element: <%w>", err)
-				}
-
 				//let decompressBuffer = new ArrayBuffer(uncompressedBlobSize);
 
 				end := context.decompressOffset + uncompressedBlobSize
 				var decompressArray = decompressBlobBuffer[context.decompressOffset:end]
 				var suboffset = uint32(0)
 				for {
+
+					err = binary.Read(compressedBlobSizeReader, binary.LittleEndian, &compressedBlobSize)
+					if err != nil {
+						return nil, fmt.Errorf("failed to read compressedBlobSize in parseBinaryKv3Element: <%w>", err)
+					}
 					src := make([]byte, compressedBlobSize)
 					_, err := compressedBlobReader.Read(src)
 					if err != nil {
 						return nil, fmt.Errorf("failed to read block lz4 source in parseBinaryKv3Element: <%w>", err)
 					}
 
-					var decompressArray2 = decompressArray[suboffset:uncompressedBlobSize]
+					var decompressArray2 = decompressArray[suboffset:]
 					dict := decompressBlobBuffer[:context.decompressOffset]
 					if uncompressedBlobSize > uint32(compressionFrameSize) {
 						uncompressedFrameSize, err := lz4.UncompressBlockWithDict(src, decompressArray2, dict)
