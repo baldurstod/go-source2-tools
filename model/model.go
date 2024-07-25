@@ -141,6 +141,19 @@ func (m *Model) initSkeleton() (*Skeleton, error) {
 	return s, nil
 }
 
+func (m *Model) GetAttachements() (map[string]*Attachment, error) {
+	if m.attachments != nil {
+		return m.attachments, nil
+	}
+
+	err := m.initAttachements()
+	if err != nil {
+		return nil, err
+	}
+
+	return m.attachments, nil
+}
+
 func (m *Model) GetAttachement(name string) (*Attachment, error) {
 	if m.attachments != nil {
 		return m.attachments[name], nil

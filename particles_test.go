@@ -11,8 +11,7 @@ import (
 func TestPsFiles(t *testing.T) {
 	log.SetFlags(log.LstdFlags | log.Lshortfile)
 
-	var filename string
-	filename = "particles/units/heroes/hero_dark_willow/dark_willow_lantern_ambient_fairy.vpcf_c"
+	filename := "particles/units/heroes/hero_dark_willow/dark_willow_lantern_ambient_fairy.vpcf_c"
 
 	//b, _ := os.ReadFile(path.Join(varFolder, filename))
 	f, err := parser.Parse("dota2", filename)
@@ -26,8 +25,7 @@ func TestPsFiles(t *testing.T) {
 func TestSystem(t *testing.T) {
 	log.SetFlags(log.LstdFlags | log.Lshortfile)
 
-	var filename string
-	filename = "particles/units/heroes/hero_dark_willow/dark_willow_lantern_ambient_fairy.vpcf_c"
+	filename := "particles/units/heroes/hero_dark_willow/dark_willow_lantern_ambient_fairy.vpcf_c"
 
 	file, err := parser.Parse("dota2", filename)
 	if err != nil {
