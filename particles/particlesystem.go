@@ -4,7 +4,6 @@ import (
 	"errors"
 
 	"github.com/baldurstod/go-source2-tools"
-	"github.com/baldurstod/go-source2-tools/kv3"
 )
 
 type ParticleSystem struct {
@@ -65,12 +64,12 @@ func (ps *ParticleSystem) initControlPointConfigurations() error {
 
 	ps.ControlPointConfigurations = NewControlPointConfigurations()
 
-	cpConfig, err := ps.file.GetBlockStruct("DATA.m_controlPointConfigurations")
+	cpConfig, err := ps.file.GetBlockStructAsKv3ValueArray("DATA.m_controlPointConfigurations")
 	if err != nil {
 		return errors.New("can't find m_controlPointConfigurations attribute")
 	}
 
-	ps.ControlPointConfigurations.initFromDatas(cpConfig.([]kv3.Kv3Value))
+	ps.ControlPointConfigurations.initFromDatas(cpConfig)
 
 	return nil
 }
