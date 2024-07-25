@@ -35,6 +35,16 @@ func Kv3ValueToInt64(value Kv3Value) int64 {
 	}
 }
 
+func Kv3ValueToFloat[T float32 | float64](value Kv3Value) T {
+	switch v := value.(type) {
+	case float32:
+		return T(v)
+	case float64:
+		return T(v)
+	}
+	return 0
+}
+
 func Kv3ValueToFloat32(value Kv3Value) float32 {
 	switch v := value.(type) {
 	case float32:
@@ -55,14 +65,13 @@ func Kv3ValueToFloat64(value Kv3Value) float64 {
 	return 0
 }
 
-func Kv3ValueToBool(value Kv3Value) bool { /*
-		switch v := value.(type) {
-		case float32:
-			return float64(v)
-		case float64:
-			return v
-		}*/
-	return false
+func Kv3ValueToBool(value Kv3Value) bool {
+	switch v := value.(type) {
+	case bool:
+		return v
+	default:
+		panic("Unknown type in Kv3ValueToBool")
+	}
 }
 
 func Kv3ValueToKv3Element(value Kv3Value) *Kv3Element {
@@ -84,18 +93,18 @@ func Kv3ValueToString(value Kv3Value) string {
 }
 
 func Kv3ValueToVector3[T float32 | float64](value Kv3Value) vector.Vector3[T] {
-	a, ok := value.([]T)
+	a, ok := value.([]Kv3Value)
 	if ok && len(a) == 3 {
-		return vector.Vector3[T]{a[0], a[1], a[2]}
+		return vector.Vector3[T]{Kv3ValueToFloat[T](a[0]), Kv3ValueToFloat[T](a[1]), Kv3ValueToFloat[T](a[2])}
 	}
 
 	return vector.Vector3[T]{}
 }
 
 func Kv3ValueToQuaternion[T float32 | float64](value Kv3Value) vector.Quaternion[T] {
-	a, ok := value.([]T)
+	a, ok := value.([]Kv3Value)
 	if ok && len(a) == 4 {
-		return vector.Quaternion[T]{a[0], a[1], a[2], a[3]}
+		return vector.Quaternion[T]{Kv3ValueToFloat[T](a[0]), Kv3ValueToFloat[T](a[1]), Kv3ValueToFloat[T](a[2]), Kv3ValueToFloat[T](a[3])}
 	}
 
 	return vector.Quaternion[T]{}
