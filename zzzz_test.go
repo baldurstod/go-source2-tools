@@ -167,3 +167,27 @@ func TestSkeleton(t *testing.T) {
 
 	log.Println(s)
 }*/
+
+func TestAttachment(t *testing.T) {
+	log.SetFlags(log.LstdFlags | log.Lshortfile)
+
+	filename := "models/heroes/dark_willow/dark_willow.vmdl_c"
+
+	file, err := parser.Parse("dota2", filename)
+	if err != nil {
+		log.Println(err)
+		t.Error(err)
+		return
+	}
+
+	model := model.NewModel()
+	model.SetFile(file)
+
+	atta, err := model.GetAttachement("attach_lantern")
+	if err != nil {
+		t.Error(err)
+		return
+	}
+
+	log.Println(atta)
+}

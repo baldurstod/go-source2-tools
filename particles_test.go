@@ -45,13 +45,6 @@ func TestSystem(t *testing.T) {
 		return
 	}
 	log.Println(config)
-	/*
-	   model.GetAnimationData(nil)
-
-	   seq, err := model.GetSequence("ACT_DOTA_IDLE", nil)
-
-	   log.Println(skel.GetBones(), seq, err)
-	*/
 }
 
 /*

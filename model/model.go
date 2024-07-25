@@ -13,6 +13,7 @@ import (
 type Model struct {
 	file                 *source2.File
 	skeleton             *Skeleton
+	attachments          map[string]*Attachment
 	sequences            map[string]*Sequence
 	animations           map[string]*Animation
 	activities           map[string]map[*Sequence]struct{}
@@ -138,6 +139,60 @@ func (m *Model) initSkeleton() (*Skeleton, error) {
 	}
 
 	return s, nil
+}
+
+func (m *Model) GetAttachement(name string) (*Attachment, error) {
+	if m.attachments != nil {
+		return m.attachments[name], nil
+	}
+
+	err := m.initAttachements()
+	if err != nil {
+		return nil, err
+	}
+
+	return m.attachments[name], nil
+}
+
+func (m *Model) initAttachements() error {
+	if m.file == nil {
+		return errors.New("model don't have a file")
+	}
+
+	attachments, err := m.file.GetBlockStructAsKv3ValueArray("MDAT.m_attachments")
+	if err != nil {
+		return errors.New("can't find m_attachments attribute")
+	}
+
+	m.attachments = make(map[string]*Attachment)
+
+	for _, a := range attachments {
+		attachment := Attachment{}
+
+		e := kv3.Kv3ValueToKv3Element(a)
+		if e == nil {
+			return errors.New("can't get attachement elemnt")
+		}
+
+		key, ok := e.GetStringAttribute("key")
+		if !ok {
+			return errors.New("can't get attachement key")
+		}
+
+		value := e.GetKv3ElementAttribute("value")
+		if value == nil {
+			return errors.New("can't get attachement value")
+		}
+
+		err = attachment.initFromDatas(value)
+		if err != nil {
+			return err
+		}
+
+		m.attachments[key] = &attachment
+	}
+
+	return nil
 }
 
 func (m *Model) GetSequence(activity string, modifiers map[string]struct{}) (*Sequence, error) {
