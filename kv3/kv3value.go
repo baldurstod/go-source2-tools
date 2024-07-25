@@ -32,3 +32,12 @@ func Kv3ValueToInt64(value Kv3Value) int64 {
 		panic("Unknown type in Kv3ValueToInt64")
 	}
 }
+
+func Kv3ValueToKv3Element(value Kv3Value) *Kv3Element {
+	v, ok := value.(*Kv3Element)
+	if ok {
+		return v
+	}
+
+	return nil
+}
