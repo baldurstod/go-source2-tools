@@ -31,7 +31,7 @@ func (cpc *ControlPointConfiguration) initFromDatas(datas *kv3.Kv3Element) error
 		if e != nil {
 			driver := Driver{}
 			driver.initFromDatas(e)
-			//cpc.Drivers = append(cpc.Drivers, driver)
+			cpc.Drivers = append(cpc.Drivers, &driver)
 		}
 	}
 
