@@ -42,6 +42,7 @@ func TestModel(t *testing.T) {
 	filename = "void_spirit.vmdl_c"
 	filename = "wisp.vmdl_c"
 	filename = "models/items/dawnbreaker/dawnbreaker_astral_angel_armor/dawnbreaker_astral_angel_armor.vmdl_c"
+	filename = "models/heroes/rattletrap/rattletrap_rocket.vmdl_c"
 
 	file, err := parser.Parse("dota2", filename)
 	if err != nil {

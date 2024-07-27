@@ -382,12 +382,11 @@ func parseDataKV3(context *parseContext, block *source2.FileBlock, version int) 
 
 	switch compressionMethod {
 	case 0:
-		sa := make([]byte, decodeLength)
-		_, err := reader.Read(sa)
+		dst = make([]byte, decodeLength)
+		_, err := reader.Read(dst)
 		if err != nil {
 			return fmt.Errorf("failed to read datas in parseDataKV3 for compression method %d: <%w>", compressionMethod, err)
 		}
-		log.Println(sa)
 	case 1:
 		if blobCount > 0 {
 			currentPos, _ := context.reader.Seek(0, io.SeekCurrent)
