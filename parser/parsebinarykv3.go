@@ -219,7 +219,7 @@ func parseBinaryKv3Element(context *parseKv3Context, quadReader *bytes.Reader, e
 	case kv3.DATA_TYPE_BLOB:
 		if blobCount == 0 {
 			var count uint32
-			err := binary.Read(context.reader, binary.LittleEndian, &count)
+			err := binary.Read(quadReader, binary.LittleEndian, &count)
 			if err != nil {
 				return nil, fmt.Errorf("failed to read count in parseBinaryKv3Element: <%w>", err)
 			}
