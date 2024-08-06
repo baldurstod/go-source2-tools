@@ -208,7 +208,7 @@ func (m *Model) initAttachements() error {
 	return nil
 }
 
-func (m *Model) GetSequence(activity string, modifiers map[string]struct{}) (*Sequence, error) {
+func (m *Model) GetSequence(activity *Activity) (*Sequence, error) {
 	if !m.sequencesInitialized {
 		err := m.initAnimations()
 		if err != nil {
@@ -220,16 +220,16 @@ func (m *Model) GetSequence(activity string, modifiers map[string]struct{}) (*Se
 		return nil, errors.New("model don't have a file")
 	}
 
-	activities, ok := m.activities[activity]
+	activities, ok := m.activities[activity.name]
 	if !ok {
-		return nil, errors.New("activity not found " + activity)
+		return nil, errors.New("activity not found " + activity.name)
 	}
 
 	bestScore := -1
 	var bestMatch *Sequence
 	//TODO: weight similar animations
 	for sequence := range activities {
-		score := sequence.modifiersScore(modifiers)
+		score := sequence.modifiersScore(activity.modifiers)
 		if score > bestScore {
 			bestScore = score
 			bestMatch = sequence
