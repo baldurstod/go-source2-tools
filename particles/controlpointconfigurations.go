@@ -39,8 +39,8 @@ func (cpc *ControlPointConfigurations) GetConfigurationByName(name string) (*Con
 }
 
 func (cpc *ControlPointConfigurations) GetConfigurationById(id int) (*ControlPointConfiguration, error) {
-	if id < 0 || id > len(cpc.Configurations) {
-		return nil, errors.New("")
+	if id < 0 || id >= len(cpc.Configurations) {
+		return nil, errors.New("control point configuration out of bounds")
 	}
 	return cpc.Configurations[id], nil
 }
