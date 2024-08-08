@@ -17,3 +17,7 @@ func NewActivity(activity string, modifiers ...string) *Activity {
 
 	return &a
 }
+
+func (a *Activity) AddModifier(modifier string) {
+	a.modifiers[modifier] = struct{}{}
+}
