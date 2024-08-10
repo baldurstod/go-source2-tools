@@ -2,6 +2,7 @@ package source2
 
 import (
 	"errors"
+	"path/filepath"
 	"strings"
 
 	"github.com/baldurstod/go-source2-tools/kv3"
@@ -9,6 +10,8 @@ import (
 
 type File struct {
 	repository  string
+	filename    string
+	FileType    string
 	FileLength  uint32
 	VersionMaj  uint16
 	VersionMin  uint16
@@ -16,20 +19,27 @@ type File struct {
 	BlocksArray []*FileBlock
 }
 
-func NewFile(repo string) *File {
-	return &File{
+func NewFile(repo string, filename string) *File {
+	f := File{
 		repository:  repo,
+		filename:    filename,
 		Blocks:      make(map[string]*FileBlock),
 		BlocksArray: make([]*FileBlock, 0),
 	}
+
+	f.FileType, _ = strings.CutSuffix(filepath.Ext(filename), "_c")
+	f.FileType, _ = strings.CutPrefix(f.FileType, ".")
+
+	return &f
 }
 
 type FileBlock struct {
 	*File
-	ResType string
-	Offset  uint32
-	Length  uint32
-	Content FileBlockContent
+	ResType  string
+	Offset   uint32
+	Length   uint32
+	Content  FileBlockContent
+	FileType string
 }
 
 func (fb *FileBlock) String() string {
@@ -48,12 +58,13 @@ func (fb *FileBlock) GetBlockStruct(path []string) (any, error) {
 	return nil, errors.New("block content is empty")
 }
 
-func (f *File) AddBlock(resType string, offset uint32, length uint32) {
+func (f *File) AddBlock(fileType string, resType string, offset uint32, length uint32) {
 	fb := &FileBlock{
-		File:    f,
-		ResType: resType,
-		Offset:  offset,
-		Length:  length,
+		FileType: fileType,
+		File:     f,
+		ResType:  resType,
+		Offset:   offset,
+		Length:   length,
 	}
 
 	_, exist := f.Blocks[resType]
