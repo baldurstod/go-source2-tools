@@ -237,3 +237,20 @@ func (mbuf *FileBlockMBUF) String() string {
 func (mbuf *FileBlockMBUF) GetBlockStruct(path []string) (any, error) {
 	panic("FileBlockMBUF GetBlockStruct")
 }
+
+type FileBlockVcdList struct {
+	Version int
+	Strings []string
+}
+
+func NewFileBlockVcdList() *FileBlockVcdList {
+	return &FileBlockVcdList{}
+}
+
+func (mbuf *FileBlockVcdList) String() string {
+	panic("FileBlockVcdList String")
+}
+
+func (mbuf *FileBlockVcdList) GetBlockStruct(path []string) (any, error) {
+	panic("FileBlockVcdList GetBlockStruct")
+}
