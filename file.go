@@ -239,7 +239,7 @@ func (mbuf *FileBlockMBUF) GetBlockStruct(path []string) (any, error) {
 }
 
 type FileBlockVcdList struct {
-	Version int
+	Version uint32
 	Strings []string
 }
 

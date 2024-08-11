@@ -51,14 +51,14 @@ func TestModel(t *testing.T) {
 		return
 	}
 
-	model := model.NewModel()
-	model.SetFile(file)
+	m := model.NewModel()
+	m.SetFile(file)
 
-	skel, _ := model.GetSkeleton()
+	skel, _ := m.GetSkeleton()
 
-	model.GetAnimationData(nil)
+	m.GetAnimationData(nil)
 
-	seq, err := model.GetSequence("ACT_DOTA_IDLE", nil)
+	seq, err := m.GetSequence(model.NewActivity("ACT_DOTA_IDLE"))
 
 	log.Println(skel.GetBones(), seq, err)
 }
@@ -87,26 +87,24 @@ func TestAnim(t *testing.T) {
 		return
 	}
 
-	model := model.NewModel()
-	model.SetFile(file)
+	m := model.NewModel()
+	m.SetFile(file)
 
-	skel, err := model.GetSkeleton()
+	skel, err := m.GetSkeleton()
 	if err != nil {
 		t.Error(err)
 		return
 	}
 	log.Println(skel)
 
-	flexes, err := model.GetFlexes()
+	flexes, err := m.GetFlexes()
 	if err != nil {
 		t.Error(err)
 		return
 	}
 	log.Println(flexes)
 
-	modifiers := make(map[string]struct{})
-	modifiers["PostGameIdle"] = struct{}{}
-	seq, err := model.GetSequence("ACT_DOTA_LOADOUT", modifiers)
+	seq, err := m.GetSequence(model.NewActivity("ACT_DOTA_LOADOUT", "PostGameIdle"))
 	if err != nil {
 		t.Error(err)
 		return

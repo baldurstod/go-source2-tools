@@ -20,10 +20,10 @@ type parseContext struct {
 	b      []byte
 }
 
-func newParseContext(repo string, b []byte) *parseContext {
+func newParseContext(repo string, filename string, b []byte) *parseContext {
 	return &parseContext{
 		reader: bytes.NewReader(b),
-		file:   source2.NewFile(repo),
+		file:   source2.NewFile(repo, filename),
 		b:      b,
 	}
 }
@@ -39,9 +39,8 @@ func Parse(repo string, path string) (*source2.File, error) {
 		return nil, errors.New("unable to read file " + path)
 	}
 
-	context := newParseContext(repo, b)
+	context := newParseContext(repo, path, b)
 
-	log.Println("Start parsing file")
 	err = parseHeader(context)
 	if err != nil {
 		return nil, err
@@ -52,7 +51,6 @@ func Parse(repo string, path string) (*source2.File, error) {
 		return nil, err
 	}
 
-	log.Println("End parsing file")
 	return context.file, nil
 }
 
@@ -107,7 +105,7 @@ func parseHeader(context *parseContext) error {
 			return fmt.Errorf("failed to read resLength in parseHeader: <%w>", err)
 		}
 
-		context.file.AddBlock(string(resType), resOffset+uint32(currentPos), resLength)
+		context.file.AddBlock(context.file.FileType, string(resType), resOffset+uint32(currentPos), resLength)
 	}
 	return nil
 }
@@ -128,7 +126,9 @@ func parseBlock(context *parseContext, block *source2.FileBlock) error {
 	switch block.ResType {
 	case "RERL":
 		err = parseRERL(context, block)
-	case "DATA", "ANIM", "CTRL", "MRPH", "MDAT", "ASEQ", "AGRP", "PHYS", "LaCo":
+	case "DATA":
+		err = parseBlock2(context, block)
+	case "ANIM", "CTRL", "MRPH", "MDAT", "ASEQ", "AGRP", "PHYS", "LaCo":
 		err = parseDATA(context, block)
 	case "MBUF":
 		err = parseVbib(context, block)
@@ -209,6 +209,41 @@ func parseRERL(context *parseContext, block *source2.FileBlock) error {
 	*/
 
 	return nil
+}
+
+func parseBlock2(context *parseContext, block *source2.FileBlock) error {
+	if block.ResType != "DATA" {
+		return errors.New("unsupported block type")
+	}
+	if block.Length <= 4 {
+		return errors.New("can't determine data type")
+	}
+
+	var magic uint32
+	context.reader.Seek(int64(block.Offset), io.SeekStart)
+	switch magic {
+	case 0x03564B56: // VKV3
+		return parseDATAVKV3(context, block)
+	case 0x4B563301: // kv31
+		return parseDataKV3(context, block, 1)
+	case 0x4B563302: // kv32 ?? new since wind ranger arcana
+		return parseDataKV3(context, block, 2)
+	case 0x4B563303: // KV3 v3 new since muerta
+		return parseDataKV3(context, block, 3)
+	case 0x4B563304: // KV3 v4 new since dota 7.33
+		return parseDataKV3(context, block, 4)
+	default:
+		return parseData(context, block)
+	}
+}
+
+func parseData(context *parseContext, block *source2.FileBlock) error {
+	switch context.file.FileType {
+	case "vcdlist":
+		return parseVcdList(context, block)
+	default:
+		return errors.New("unsupported file type " + context.file.FileType)
+	}
 }
 
 func parseDATA(context *parseContext, block *source2.FileBlock) error {
