@@ -15,7 +15,7 @@ import (
 const BVCD_MAGIC = 0x64637662 // bvcd
 
 func parseVcdList(context *parseContext, block *source2.FileBlock) error {
-	vcdList := source2.FileBlockVcdList{}
+	vcdList := &source2.FileBlockVcdList{}
 	var choreoCount uint32
 	var err error
 	var strings []string
@@ -34,9 +34,11 @@ func parseVcdList(context *parseContext, block *source2.FileBlock) error {
 	}
 
 	context.reader.Seek(o+16, io.SeekStart) //skip strings data
-	if _, err = readChoreographies(context.reader, choreoCount, strings); err != nil {
+	if vcdList.Choreographies, err = readChoreographies(context.reader, choreoCount, strings); err != nil {
 		return err
 	}
+
+	block.Content = vcdList
 
 	return nil
 }
