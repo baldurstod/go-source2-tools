@@ -191,13 +191,12 @@ func readBlock(reader io.ReadSeeker, length uint32) (io.ReadSeeker, error) {
 			return nil, fmt.Errorf("failed to create lzma reader: <%w>", err)
 		}
 
-		var p [1000]byte
-		if _, err = r.Read(p[:]); err != nil {
+		var uncompressed = make([]byte, uncompressedSize)
+		if _, err = r.Read(uncompressed[:]); err != nil {
 			return nil, err
 		}
-		log.Println(p)
 
-		return nil, nil
+		return bytes.NewReader(uncompressed), nil
 	} else {
 		reader.Seek(-4, io.SeekCurrent)
 		//TODO: optimize
