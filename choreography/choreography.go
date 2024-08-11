@@ -6,11 +6,13 @@ type Choreography struct {
 	SoundDuration uint32
 	HasSounds     bool
 	events        []*ChoreographyEvent
+	actors        []*ChoreographyActor
 }
 
 func NewChoreography() *Choreography {
 	return &Choreography{
-		events: make([]*ChoreographyEvent, 10),
+		events: make([]*ChoreographyEvent, 0, 10),
+		actors: make([]*ChoreographyActor, 0, 10),
 	}
 }
 
@@ -19,37 +21,27 @@ func (c *Choreography) AddEvent(event *ChoreographyEvent) {
 	c.events = append(c.events, event)
 }
 
+func (c *Choreography) AddActor(actor *ChoreographyActor) {
+	actor.Choreography = c
+	c.actors = append(c.actors, actor)
+}
+
 type ChoreographyEvent struct {
-	*Choreography
-	EventType int8
-	Name      string
-	StartTime float32
-	EndTime   float32
-	Param1    string
-	Param2    string
-	Param3    string
+	Choreography *Choreography
+	EventType    int8
+	Name         string
+	StartTime    float32
+	EndTime      float32
+	Param1       string
+	Param2       string
+	Param3       string
 	*CurveData
 	Flags        uint8
 	DistToTarget float32
-	/*
-	   this.#repository = repository;
-	   this.type = eventType;
-	   this.name = name;
-	   this.startTime = startTime;
-	   this.endTime = endTime;
-	   this.param1 = param1;
-	   this.param2 = param2;
-	   this.param3 = param3;
-	   this.flags = flags;
-	   this.distanceToTarget = distanceToTarget;
-	   this.flexAnimTracks = {};
-	*/
 }
 
 func NewChoreographyEvent() *ChoreographyEvent {
-	return &ChoreographyEvent{
-		//events: make([]*ChoreographyEvent, 10),
-	}
+	return &ChoreographyEvent{}
 }
 
 type CurveData struct {
@@ -58,7 +50,7 @@ type CurveData struct {
 
 func NewCurveData() *CurveData {
 	return &CurveData{
-		Ramp: make([]*CurveDataValue, 10),
+		Ramp: make([]*CurveDataValue, 0, 10),
 	}
 }
 
@@ -74,4 +66,36 @@ type CurveDataValue struct {
 	Time     float32
 	Value    float32
 	Selected bool
+}
+
+type ChoreographyActor struct {
+	Choreography *Choreography
+	Name         string
+	Channels     []*ChoreographyChannel
+}
+
+func NewChoreographyActor() *ChoreographyActor {
+	return &ChoreographyActor{}
+}
+
+func (a *ChoreographyActor) AddChannel(channel *ChoreographyChannel) {
+	channel.Choreography = a.Choreography
+	a.Channels = append(a.Channels, channel)
+}
+
+type ChoreographyChannel struct {
+	Choreography *Choreography
+	Name         string
+	events       []*ChoreographyEvent
+}
+
+func NewChoreographyChannel() *ChoreographyChannel {
+	return &ChoreographyChannel{
+		events: make([]*ChoreographyEvent, 0, 10),
+	}
+}
+
+func (c *ChoreographyChannel) AddEvent(event *ChoreographyEvent) {
+	event.Choreography = c.Choreography
+	c.events = append(c.events, event)
 }

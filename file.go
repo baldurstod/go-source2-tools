@@ -5,6 +5,7 @@ import (
 	"path/filepath"
 	"strings"
 
+	"github.com/baldurstod/go-source2-tools/choreography"
 	"github.com/baldurstod/go-source2-tools/kv3"
 )
 
@@ -239,8 +240,9 @@ func (mbuf *FileBlockMBUF) GetBlockStruct(path []string) (any, error) {
 }
 
 type FileBlockVcdList struct {
-	Version uint32
-	Strings []string
+	Version        uint32
+	Strings        []string
+	Choreographies []*choreography.Choreography
 }
 
 func NewFileBlockVcdList() *FileBlockVcdList {
