@@ -5,13 +5,14 @@ import (
 	"encoding/binary"
 	"fmt"
 	"io"
-	"log"
 	"strings"
 
 	"github.com/baldurstod/go-source2-tools"
 	"github.com/baldurstod/go-source2-tools/choreography"
 	"github.com/ulikunitz/xz/lzma"
 )
+
+const BVCD_MAGIC = 0x64637662 // bvcd
 
 func parseVcdList(context *parseContext, block *source2.FileBlock) error {
 	vcdList := source2.FileBlockVcdList{}
@@ -98,7 +99,7 @@ func readChoreographies(reader io.ReadSeeker, count uint32, strings []string) ([
 }
 
 func readChoreography(reader io.ReadSeeker, strings []string) (*choreography.Choreography, error) {
-	choreo := choreography.Choreography{}
+	choreo := choreography.NewChoreography()
 	var nameOffset uint32
 	var blockOffset uint32
 	var blockLength uint32
@@ -136,11 +137,144 @@ func readChoreography(reader io.ReadSeeker, strings []string) (*choreography.Cho
 		return nil, fmt.Errorf("failed to read choreography block: <%w>", err)
 	}
 
-	log.Println(blockReader)
+	readChoreographyData(blockReader, strings, choreo)
 
-	log.Println(nameOffset, blockOffset)
+	//log.Println(blockReader)
+	//log.Println(nameOffset, blockOffset)
 
-	return &choreo, nil
+	return choreo, nil
+}
+
+func readChoreographyData(reader io.ReadSeeker, strings []string, choreo *choreography.Choreography) error {
+	var err error
+	var bvcdMagic uint32
+	var version uint8
+	if err = binary.Read(reader, binary.LittleEndian, &bvcdMagic); err != nil {
+		return fmt.Errorf("failed to read choreography bvcd magic: <%w>", err)
+	}
+
+	if bvcdMagic != BVCD_MAGIC {
+		return fmt.Errorf("unsupported choreography magic: %d", bvcdMagic)
+	}
+
+	if err = binary.Read(reader, binary.LittleEndian, &version); err != nil {
+		return fmt.Errorf("failed to read choreography version: <%w>", err)
+	}
+	if version > 19 {
+		return fmt.Errorf("unsupported choreography version: <%d>", version)
+	}
+
+	if _, err = reader.Seek(4, io.SeekCurrent); err != nil { // Skip crc
+		return fmt.Errorf("failed to read choreography version: <%w>", err)
+	}
+
+	if err = readChoreographyEvents(reader, strings, choreo); err != nil {
+		return fmt.Errorf("failed to read choreography events: <%w>", err)
+	}
+
+	if err = readChoreographyActors(reader, strings, choreo); err != nil {
+		return fmt.Errorf("failed to read choreography actors: <%w>", err)
+	}
+
+	return nil
+}
+
+func readChoreographyEvents(reader io.ReadSeeker, strings []string, choreo *choreography.Choreography) error {
+	var eventCount uint8
+	var err error
+	var event *choreography.ChoreographyEvent
+	if err = binary.Read(reader, binary.LittleEndian, &eventCount); err != nil {
+		return fmt.Errorf("failed to read choreography event count: <%w>", err)
+	}
+
+	for i := 0; i < int(eventCount); i++ {
+		if event, err = readChoreographyEvent(reader, strings); err != nil {
+			return fmt.Errorf("failed to read choreography event: <%w>", err)
+		}
+		choreo.AddEvent(event)
+	}
+
+	return nil
+}
+
+func readChoreographyEvent(reader io.ReadSeeker, strings []string) (*choreography.ChoreographyEvent, error) {
+	event := choreography.NewChoreographyEvent()
+	var err error
+
+	if err = binary.Read(reader, binary.LittleEndian, &event.EventType); err != nil {
+		return nil, fmt.Errorf("failed to read event type: <%w>", err)
+	}
+	if event.Name, err = readString(reader, strings); err != nil {
+		return nil, fmt.Errorf("failed to read event name: <%w>", err)
+	}
+	if err = binary.Read(reader, binary.LittleEndian, &event.StartTime); err != nil {
+		return nil, fmt.Errorf("failed to read event start time: <%w>", err)
+	}
+	if err = binary.Read(reader, binary.LittleEndian, &event.EndTime); err != nil {
+		return nil, fmt.Errorf("failed to read event end time: <%w>", err)
+	}
+	if event.Param1, err = readString(reader, strings); err != nil {
+		return nil, fmt.Errorf("failed to read event param 1: <%w>", err)
+	}
+	if event.Param2, err = readString(reader, strings); err != nil {
+		return nil, fmt.Errorf("failed to read event param 2: <%w>", err)
+	}
+	if event.Param3, err = readString(reader, strings); err != nil {
+		return nil, fmt.Errorf("failed to read event param 3: <%w>", err)
+	}
+	if event.CurveData, err = readCurveData(reader); err != nil {
+		return nil, fmt.Errorf("failed to read event curve data: <%w>", err)
+	}
+	if err = binary.Read(reader, binary.LittleEndian, &event.Flags); err != nil {
+		return nil, fmt.Errorf("failed to read event flags: <%w>", err)
+	}
+	if err = binary.Read(reader, binary.LittleEndian, &event.DistToTarget); err != nil {
+		return nil, fmt.Errorf("failed to read event dist to target: <%w>", err)
+	}
+
+	return event, nil
+}
+
+func readString(reader io.ReadSeeker, strings []string) (string, error) {
+	var index uint16
+	if err := binary.Read(reader, binary.LittleEndian, &index); err != nil {
+		return "", fmt.Errorf("failed to read string index: <%w>", err)
+	}
+
+	if int(index) >= len(strings) {
+		return "", fmt.Errorf("index out of bounds: %d >=  %d", index, len(strings))
+	}
+
+	return strings[index], nil
+}
+
+func readCurveData(reader io.ReadSeeker) (*choreography.CurveData, error) {
+	curveData := choreography.NewCurveData()
+	var count uint16
+	var err error
+	var t float32
+	var v uint8
+
+	if err = binary.Read(reader, binary.LittleEndian, &count); err != nil {
+		return nil, fmt.Errorf("failed to read crve data count: <%w>", err)
+	}
+
+	for i := 0; i < int(count); i++ {
+		if err = binary.Read(reader, binary.LittleEndian, &t); err != nil {
+			return nil, fmt.Errorf("failed to read curve data time: <%w>", err)
+		}
+		if err = binary.Read(reader, binary.LittleEndian, &v); err != nil {
+			return nil, fmt.Errorf("failed to read curve data value: <%w>", err)
+		}
+
+		curveData.Add(t, float32(v)/255.0, false)
+	}
+
+	return curveData, nil
+}
+
+func readChoreographyActors(reader io.ReadSeeker, strings []string, choreo *choreography.Choreography) error {
+	return nil
 }
 
 func readOffset(reader io.ReadSeeker) (uint32, error) {
