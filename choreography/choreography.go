@@ -36,8 +36,10 @@ type ChoreographyEvent struct {
 	Param2       string
 	Param3       string
 	*CurveData
-	Flags        uint8
-	DistToTarget float32
+	Flags          uint8
+	DistToTarget   float32
+	RelativeTags   []*ChoreographyTag
+	FlexTimingTags []*ChoreographyTag
 }
 
 func NewChoreographyEvent() *ChoreographyEvent {
@@ -100,4 +102,10 @@ func NewChoreographyChannel() *ChoreographyChannel {
 func (c *ChoreographyChannel) AddEvent(event *ChoreographyEvent) {
 	event.Choreography = c.Choreography
 	c.events = append(c.events, event)
+}
+
+type ChoreographyTag struct {
+	Choreography *Choreography
+	Name         string
+	Value        float32
 }

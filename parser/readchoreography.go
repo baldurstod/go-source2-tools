@@ -204,6 +204,8 @@ func readChoreographyEvents(reader io.ReadSeeker, strings []string, choreo *chor
 func readChoreographyEvent(reader io.ReadSeeker, strings []string) (*choreography.ChoreographyEvent, error) {
 	event := choreography.NewChoreographyEvent()
 	var err error
+	var count uint8
+	var tag *choreography.ChoreographyTag
 
 	if err = binary.Read(reader, binary.LittleEndian, &event.EventType); err != nil {
 		return nil, fmt.Errorf("failed to read event type: <%w>", err)
@@ -239,7 +241,54 @@ func readChoreographyEvent(reader io.ReadSeeker, strings []string) (*choreograph
 		return nil, fmt.Errorf("failed to read event dist to target: <%w>", err)
 	}
 
+	// Relative tag
+	if err = binary.Read(reader, binary.LittleEndian, &count); err != nil {
+		return nil, fmt.Errorf("failed to read event tag count: <%w>", err)
+	}
+	event.RelativeTags = make([]*choreography.ChoreographyTag, count)
+	for i := 0; i < int(count); i++ {
+		if tag, err = readChoreographyTag(reader, strings); err != nil {
+			return nil, fmt.Errorf("failed to read choreography tag: <%w>", err)
+		}
+		event.RelativeTags[i] = tag
+	}
+
+	// Flex timing tag
+	if err = binary.Read(reader, binary.LittleEndian, &count); err != nil {
+		return nil, fmt.Errorf("failed to read event tag count: <%w>", err)
+	}
+	event.FlexTimingTags = make([]*choreography.ChoreographyTag, count)
+	for i := 0; i < int(count); i++ {
+		if tag, err = readChoreographyTag(reader, strings); err != nil {
+			return nil, fmt.Errorf("failed to read choreography tag: <%w>", err)
+		}
+		event.FlexTimingTags[i] = tag
+	}
+
 	return event, nil
+}
+
+func readChoreographyTag(reader io.ReadSeeker, strings []string) (*choreography.ChoreographyTag, error) {
+	var err error
+	var value uint8
+	tag := &choreography.ChoreographyTag{}
+
+	if tag.Name, err = readString(reader, strings); err != nil {
+		return nil, fmt.Errorf("failed to read tag name: <%w>", err)
+	}
+
+	if err = binary.Read(reader, binary.LittleEndian, &value); err != nil {
+		return nil, fmt.Errorf("failed to read event end time: <%w>", err)
+	}
+
+	tag.Value = float32(value) / 255.
+
+	/*
+		var name = ReadString();
+		var value = reader.ReadByte() / 255f;
+		return new ChoreoTag(name, value);
+	*/
+	return tag, nil
 }
 
 func readString(reader io.ReadSeeker, strings []string) (string, error) {
