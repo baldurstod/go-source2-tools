@@ -431,20 +431,49 @@ func readCurveData(reader io.ReadSeeker) (*choreography.CurveData, error) {
 	var err error
 	var t float32
 	var v uint8
+	var hasBezier uint8
+	var sample *choreography.CurveDataSample
 
 	if err = binary.Read(reader, binary.LittleEndian, &count); err != nil {
 		return nil, fmt.Errorf("failed to read crve data count: <%w>", err)
 	}
 
 	for i := 0; i < int(count); i++ {
+		sample = &choreography.CurveDataSample{}
 		if err = binary.Read(reader, binary.LittleEndian, &t); err != nil {
 			return nil, fmt.Errorf("failed to read curve data time: <%w>", err)
 		}
 		if err = binary.Read(reader, binary.LittleEndian, &v); err != nil {
 			return nil, fmt.Errorf("failed to read curve data value: <%w>", err)
 		}
+		if err = binary.Read(reader, binary.LittleEndian, &hasBezier); err != nil {
+			return nil, fmt.Errorf("failed to read curve data has bezier: <%w>", err)
+		}
 
-		curveData.Add(t, float32(v)/255.0, false)
+		sample.Time = t
+		sample.Value = float32(v) / 255.0
+
+		if hasBezier == 1 {
+			sample.Bezier = &choreography.CurveDataSampleBezier{}
+			if err = binary.Read(reader, binary.LittleEndian, &sample.Bezier.Flags); err != nil {
+				return nil, fmt.Errorf("failed to read curve data bezier flags: <%w>", err)
+			}
+			if err = binary.Read(reader, binary.LittleEndian, &sample.Bezier.InDeg); err != nil {
+				return nil, fmt.Errorf("failed to read curve data bezier in: <%w>", err)
+			}
+			if err = binary.Read(reader, binary.LittleEndian, &sample.Bezier.InWeight); err != nil {
+				return nil, fmt.Errorf("failed to read curve data bezier in weight: <%w>", err)
+			}
+			if err = binary.Read(reader, binary.LittleEndian, &sample.Bezier.OutDeg); err != nil {
+				return nil, fmt.Errorf("failed to read curve data bezier out: <%w>", err)
+			}
+			if err = binary.Read(reader, binary.LittleEndian, &sample.Bezier.OutWeight); err != nil {
+				return nil, fmt.Errorf("failed to read curve data bezier out weight: <%w>", err)
+			}
+		}
+
+		//curveData.Add(t, float32(v)/255.0, false)
+		curveData.AddSample(sample)
 	}
 
 	return curveData, nil

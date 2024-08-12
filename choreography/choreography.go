@@ -68,27 +68,32 @@ func (ce *ChoreographyEvent) AddTrack(name string) *FlexAnimationTrack {
 }
 
 type CurveData struct {
-	Ramp []*CurveDataValue
+	Ramp []*CurveDataSample
 }
 
 func NewCurveData() *CurveData {
 	return &CurveData{
-		Ramp: make([]*CurveDataValue, 0, 10),
+		Ramp: make([]*CurveDataSample, 0, 10),
 	}
 }
 
-func (c *CurveData) Add(time float32, value float32, selected bool) {
-	c.Ramp = append(c.Ramp, &CurveDataValue{
-		Time:     time,
-		Value:    value,
-		Selected: selected,
-	})
+func (c *CurveData) AddSample(sample *CurveDataSample) {
+	c.Ramp = append(c.Ramp, sample)
 }
 
-type CurveDataValue struct {
+type CurveDataSample struct {
 	Time     float32
 	Value    float32
 	Selected bool
+	Bezier   *CurveDataSampleBezier
+}
+
+type CurveDataSampleBezier struct {
+	Flags     uint8
+	InDeg     float32
+	InWeight  float32
+	OutDeg    float32
+	OutWeight float32
 }
 
 type ChoreographyActor struct {
