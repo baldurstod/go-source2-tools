@@ -285,7 +285,24 @@ func readChoreographyEvent(reader io.ReadSeeker, strings []string) (*choreograph
 		if err = binary.Read(reader, binary.LittleEndian, &duration); err != nil {
 			return nil, fmt.Errorf("failed to read event duration: <%w>", err)
 		}
+	}
 
+	var useTag uint8
+	if err = binary.Read(reader, binary.LittleEndian, &useTag); err != nil {
+		return nil, fmt.Errorf("failed to read choreography duration: <%w>", err)
+	}
+	if useTag == 1 {
+		event.UsesTag = true
+		if event.TagName, err = readString(reader, strings); err != nil {
+			return nil, fmt.Errorf("failed to read event tag name: <%w>", err)
+		}
+		if event.TagWavName, err = readString(reader, strings); err != nil {
+			return nil, fmt.Errorf("failed to read event tag wav name: <%w>", err)
+		}
+	}
+
+	if err = readChoreographyFlexAnimations(reader, strings, event); err != nil {
+		return nil, err
 	}
 
 	return event, nil
@@ -323,6 +340,46 @@ func readChoreographyAbsoluteTag(reader io.ReadSeeker, strings []string) (*chore
 
 	tag.Value = float32(value) / 4096.
 	return tag, nil
+}
+
+func readChoreographyFlexAnimations(reader io.ReadSeeker, strings []string, event *choreography.ChoreographyEvent) error {
+	var numTracks byte
+	var controllerName string
+	var track *choreography.FlexAnimationTrack
+	var err error
+
+	if err = binary.Read(reader, binary.LittleEndian, &numTracks); err != nil {
+		return fmt.Errorf("failed to read event track count: <%w>", err)
+	}
+
+	for i := 0; i < int(numTracks); i++ {
+		if controllerName, err = readString(reader, strings); err != nil {
+			return fmt.Errorf("failed to read event controller name: <%w>", err)
+		}
+		track = event.AddTrack(controllerName)
+
+		if err = binary.Read(reader, binary.LittleEndian, &track.Flags); err != nil {
+			return fmt.Errorf("failed to read event track flags: <%w>", err)
+		}
+		if err = binary.Read(reader, binary.LittleEndian, &track.Min); err != nil {
+			return fmt.Errorf("failed to read event track min: <%w>", err)
+		}
+		if err = binary.Read(reader, binary.LittleEndian, &track.Max); err != nil {
+			return fmt.Errorf("failed to read event track max: <%w>", err)
+		}
+
+		if track.SamplesCurve, err = readCurveData(reader); err != nil {
+			return fmt.Errorf("failed to read event curve data: <%w>", err)
+		}
+
+		if track.IsComboType() {
+			if track.ComboSamplesCurve, err = readCurveData(reader); err != nil {
+				return fmt.Errorf("failed to read event curve data: <%w>", err)
+			}
+		}
+	}
+
+	return nil
 }
 
 func readString(reader io.ReadSeeker, strings []string) (string, error) {

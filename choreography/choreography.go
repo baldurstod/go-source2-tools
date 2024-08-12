@@ -41,10 +41,22 @@ type ChoreographyEvent struct {
 	RelativeTags   []*ChoreographyTag
 	FlexTimingTags []*ChoreographyTag
 	AbsoluteTags   [2][]*ChoreographyTag
+	UsesTag        bool
+	TagName        string
+	TagWavName     string
+	Tracks         map[string]*FlexAnimationTrack
 }
 
 func NewChoreographyEvent() *ChoreographyEvent {
-	return &ChoreographyEvent{}
+	return &ChoreographyEvent{
+		Tracks: make(map[string]*FlexAnimationTrack),
+	}
+}
+
+func (ce *ChoreographyEvent) AddTrack(name string) *FlexAnimationTrack {
+	track := &FlexAnimationTrack{}
+	ce.Tracks[name] = track
+	return track
 }
 
 type CurveData struct {
@@ -109,4 +121,20 @@ type ChoreographyTag struct {
 	Choreography *Choreography
 	Name         string
 	Value        float32
+}
+
+type FlexAnimationTrack struct {
+	Flags             uint8
+	Min               float32
+	Max               float32
+	SamplesCurve      *CurveData
+	ComboSamplesCurve *CurveData
+}
+
+func (fat *FlexAnimationTrack) IsTrackActive() bool {
+	return (fat.Flags & (1 << 0)) == 1
+}
+
+func (fat *FlexAnimationTrack) IsComboType() bool {
+	return (fat.Flags & (1 << 1)) == 1<<1
 }
