@@ -305,6 +305,36 @@ func readChoreographyEvent(reader io.ReadSeeker, strings []string) (*choreograph
 		return nil, err
 	}
 
+	if event.EventType == choreography.LOOP {
+		var loopCount int8
+		if err = binary.Read(reader, binary.LittleEndian, &loopCount); err != nil {
+			return nil, fmt.Errorf("failed to read event loop count: <%w>", err)
+		}
+		event.LoopCount = max(-1, int(loopCount))
+	}
+
+	if event.EventType == choreography.SPEAK {
+		if err = binary.Read(reader, binary.LittleEndian, &event.CloseCaptionType); err != nil {
+			return nil, fmt.Errorf("failed to read event close caption type: <%w>", err)
+		}
+		if event.CloseCaptionToken, err = readString(reader, strings); err != nil {
+			return nil, fmt.Errorf("failed to read event close caption token: <%w>", err)
+		}
+		if err = binary.Read(reader, binary.LittleEndian, &event.SpeakFlags); err != nil {
+			return nil, fmt.Errorf("failed to read event speak flags: <%w>", err)
+		}
+		if err = binary.Read(reader, binary.LittleEndian, &event.SoundStartDelay); err != nil {
+			return nil, fmt.Errorf("failed to read event sound start delay: <%w>", err)
+		}
+	}
+
+	if err = binary.Read(reader, binary.LittleEndian, &event.ConstrainedEventId); err != nil {
+		return nil, fmt.Errorf("failed to read event constrained event id: <%w>", err)
+	}
+	if err = binary.Read(reader, binary.LittleEndian, &event.EventId); err != nil {
+		return nil, fmt.Errorf("failed to read event event id: <%w>", err)
+	}
+
 	return event, nil
 }
 

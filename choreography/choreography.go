@@ -36,15 +36,22 @@ type ChoreographyEvent struct {
 	Param2       string
 	Param3       string
 	*CurveData
-	Flags          uint8
-	DistToTarget   float32
-	RelativeTags   []*ChoreographyTag
-	FlexTimingTags []*ChoreographyTag
-	AbsoluteTags   [2][]*ChoreographyTag
-	UsesTag        bool
-	TagName        string
-	TagWavName     string
-	Tracks         map[string]*FlexAnimationTrack
+	Flags              uint8
+	DistToTarget       float32
+	RelativeTags       []*ChoreographyTag
+	FlexTimingTags     []*ChoreographyTag
+	AbsoluteTags       [2][]*ChoreographyTag
+	UsesTag            bool
+	TagName            string
+	TagWavName         string
+	Tracks             map[string]*FlexAnimationTrack
+	LoopCount          int
+	CloseCaptionType   int8
+	CloseCaptionToken  string
+	SpeakFlags         uint8
+	SoundStartDelay    float32
+	ConstrainedEventId int32
+	EventId            int32
 }
 
 func NewChoreographyEvent() *ChoreographyEvent {
