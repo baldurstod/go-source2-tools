@@ -27,14 +27,15 @@ func (c *Choreography) AddActor(actor *ChoreographyActor) {
 }
 
 type ChoreographyEvent struct {
-	Choreography *Choreography
-	EventType    EventType
-	Name         string
-	StartTime    float32
-	EndTime      float32
-	Param1       string
-	Param2       string
-	Param3       string
+	Choreography  *Choreography
+	EventType     EventType
+	Name          string
+	PreferredName string
+	StartTime     float32
+	EndTime       float32
+	Param1        string
+	Param2        string
+	Param3        string
 	*CurveData
 	Flags              uint8
 	DistToTarget       float32

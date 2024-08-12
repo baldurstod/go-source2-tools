@@ -169,7 +169,7 @@ func readChoreographyData(reader io.ReadSeeker, strings []string, choreo *choreo
 	}
 
 	if _, err = reader.Seek(4, io.SeekCurrent); err != nil { // Skip crc
-		return fmt.Errorf("failed to read choreography version: <%w>", err)
+		return fmt.Errorf("failed to skip crc: <%w>", err)
 	}
 
 	if err = readChoreographyEvents(reader, strings, choreo); err != nil {
@@ -213,7 +213,7 @@ func readChoreographyEvent(reader io.ReadSeeker, strings []string) (*choreograph
 	if event.Name, err = readString(reader, strings); err != nil {
 		return nil, fmt.Errorf("failed to read event name: <%w>", err)
 	}
-	if event.Name, err = readString(reader, strings); err != nil {
+	if event.PreferredName, err = readString(reader, strings); err != nil {
 		return nil, fmt.Errorf("failed to read event name: <%w>", err)
 	}
 	if err = binary.Read(reader, binary.LittleEndian, &event.StartTime); err != nil {
