@@ -303,6 +303,7 @@ func readChoreographyActor(reader io.ReadSeeker, strings []string) (*choreograph
 	//channel := choreography.NewChoreographyChannel()
 	var err error
 	var channelCount uint8
+	var active uint8
 	var channel *choreography.ChoreographyChannel
 
 	if actor.Name, err = readString(reader, strings); err != nil {
@@ -319,6 +320,11 @@ func readChoreographyActor(reader io.ReadSeeker, strings []string) (*choreograph
 		}
 		actor.AddChannel(channel)
 	}
+
+	if err = binary.Read(reader, binary.LittleEndian, &active); err != nil {
+		return nil, fmt.Errorf("failed to read choreography actor active: <%w>", err)
+	}
+	actor.Active = active == 1
 
 	return actor, nil
 }

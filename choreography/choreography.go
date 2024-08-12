@@ -71,6 +71,7 @@ type CurveDataValue struct {
 type ChoreographyActor struct {
 	Choreography *Choreography
 	Name         string
+	Active       bool
 	Channels     []*ChoreographyChannel
 }
 
