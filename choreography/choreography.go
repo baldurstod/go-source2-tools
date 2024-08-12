@@ -28,7 +28,7 @@ func (c *Choreography) AddActor(actor *ChoreographyActor) {
 
 type ChoreographyEvent struct {
 	Choreography *Choreography
-	EventType    int8
+	EventType    EventType
 	Name         string
 	StartTime    float32
 	EndTime      float32
@@ -40,6 +40,7 @@ type ChoreographyEvent struct {
 	DistToTarget   float32
 	RelativeTags   []*ChoreographyTag
 	FlexTimingTags []*ChoreographyTag
+	AbsoluteTags   [2][]*ChoreographyTag
 }
 
 func NewChoreographyEvent() *ChoreographyEvent {

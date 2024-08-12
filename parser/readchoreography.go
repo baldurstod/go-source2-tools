@@ -265,6 +265,29 @@ func readChoreographyEvent(reader io.ReadSeeker, strings []string) (*choreograph
 		event.FlexTimingTags[i] = tag
 	}
 
+	// absolute tags
+	for j := 0; j < 2; j++ {
+		if err = binary.Read(reader, binary.LittleEndian, &count); err != nil {
+			return nil, fmt.Errorf("failed to read event tag count: <%w>", err)
+		}
+		event.AbsoluteTags[j] = make([]*choreography.ChoreographyTag, count)
+		for i := 0; i < int(count); i++ {
+			if tag, err = readChoreographyAbsoluteTag(reader, strings); err != nil {
+				return nil, fmt.Errorf("failed to read choreography tag: <%w>", err)
+			}
+			event.AbsoluteTags[j][i] = tag
+		}
+	}
+
+	if event.EventType == choreography.GESTURE {
+		var duration float32
+
+		if err = binary.Read(reader, binary.LittleEndian, &duration); err != nil {
+			return nil, fmt.Errorf("failed to read event duration: <%w>", err)
+		}
+
+	}
+
 	return event, nil
 }
 
@@ -282,12 +305,23 @@ func readChoreographyTag(reader io.ReadSeeker, strings []string) (*choreography.
 	}
 
 	tag.Value = float32(value) / 255.
+	return tag, nil
+}
 
-	/*
-		var name = ReadString();
-		var value = reader.ReadByte() / 255f;
-		return new ChoreoTag(name, value);
-	*/
+func readChoreographyAbsoluteTag(reader io.ReadSeeker, strings []string) (*choreography.ChoreographyTag, error) {
+	var err error
+	var value uint16
+	tag := &choreography.ChoreographyTag{}
+
+	if tag.Name, err = readString(reader, strings); err != nil {
+		return nil, fmt.Errorf("failed to read tag name: <%w>", err)
+	}
+
+	if err = binary.Read(reader, binary.LittleEndian, &value); err != nil {
+		return nil, fmt.Errorf("failed to read event end time: <%w>", err)
+	}
+
+	tag.Value = float32(value) / 4096.
 	return tag, nil
 }
 

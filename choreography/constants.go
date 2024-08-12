@@ -1,0 +1,24 @@
+package choreography
+
+// Events types
+type EventType int8
+
+const (
+	UNSPECIFIED EventType = iota
+	SECTION
+	EXPRESSION
+	LOOKAT
+	MOVETO
+	SPEAK
+	GESTURE
+	SEQUENCE
+	FACE
+	FIRETRIGGER
+	FLEXANIMATION
+	SUBSCENE
+	LOOP
+	INTERRUPT
+	STOPPOINT
+	PERMIT_RESPONSES
+	GENERIC
+)
