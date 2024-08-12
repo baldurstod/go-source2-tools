@@ -87,6 +87,7 @@ func (a *ChoreographyActor) AddChannel(channel *ChoreographyChannel) {
 type ChoreographyChannel struct {
 	Choreography *Choreography
 	Name         string
+	Active       bool
 	events       []*ChoreographyEvent
 }
 
