@@ -3,6 +3,7 @@ package parser
 import (
 	"bytes"
 	"encoding/binary"
+	"errors"
 	"fmt"
 	"io"
 	"strings"
@@ -413,7 +414,7 @@ func readChoreographyFlexAnimations(reader io.ReadSeeker, strings []string, even
 }
 
 func readString(reader io.ReadSeeker, strings []string) (string, error) {
-	var index int32
+	var index uint32
 	if err := binary.Read(reader, binary.LittleEndian, &index); err != nil {
 		return "", fmt.Errorf("failed to read string index: <%w>", err)
 	}
@@ -429,54 +430,96 @@ func readCurveData(reader io.ReadSeeker) (*choreography.CurveData, error) {
 	curveData := choreography.NewCurveData()
 	var count uint16
 	var err error
-	var t float32
-	var v uint8
-	var hasBezier uint8
 	var sample *choreography.CurveDataSample
+	var sampleType uint8
+	var unk uint8
 
 	if err = binary.Read(reader, binary.LittleEndian, &count); err != nil {
 		return nil, fmt.Errorf("failed to read crve data count: <%w>", err)
 	}
 
 	for i := 0; i < int(count); i++ {
-		sample = &choreography.CurveDataSample{}
-		if err = binary.Read(reader, binary.LittleEndian, &t); err != nil {
-			return nil, fmt.Errorf("failed to read curve data time: <%w>", err)
+		if sampleType == 0 {
+			if sample, err = readCurveDataSample(reader); err != nil {
+				return nil, fmt.Errorf("failed to read curve data time: <%w>", err)
+			}
+			curveData.AddSample(sample)
+		} else if sampleType == 1 {
+			curveType := &choreography.CurveDataSampleType{}
+			if err = binary.Read(reader, binary.LittleEndian, &curveType.OutType); err != nil {
+				return nil, fmt.Errorf("failed to read curve data out type: <%w>", err)
+			}
+			if err = binary.Read(reader, binary.LittleEndian, &curveType.InType); err != nil {
+				return nil, fmt.Errorf("failed to read curve data in type: <%w>", err)
+			}
+			if err = binary.Read(reader, binary.LittleEndian, &unk); err != nil {
+				return nil, fmt.Errorf("failed to read curve data unk: <%w>", err)
+			}
+
+			sample.CurveType = curveType
+
+			/*
+
+			   var outType = reader.ReadByte();
+			   var inType = reader.ReadByte();
+			   var nullTermination = reader.ReadByte();
+			   Debug.Assert(nullTermination == 0);
+
+			   lastSample.SetCurveType(inType, outType);
+			*/
+
+		} else {
+			return nil, errors.New("unknonw sample type")
 		}
-		if err = binary.Read(reader, binary.LittleEndian, &v); err != nil {
-			return nil, fmt.Errorf("failed to read curve data value: <%w>", err)
-		}
-		if err = binary.Read(reader, binary.LittleEndian, &hasBezier); err != nil {
-			return nil, fmt.Errorf("failed to read curve data has bezier: <%w>", err)
+		if err = binary.Read(reader, binary.LittleEndian, &sampleType); err != nil {
+			return nil, fmt.Errorf("failed to read curve data sample type: <%w>", err)
 		}
 
-		sample.Time = t
-		sample.Value = float32(v) / 255.0
-
-		if hasBezier == 1 {
-			sample.Bezier = &choreography.CurveDataSampleBezier{}
-			if err = binary.Read(reader, binary.LittleEndian, &sample.Bezier.Flags); err != nil {
-				return nil, fmt.Errorf("failed to read curve data bezier flags: <%w>", err)
-			}
-			if err = binary.Read(reader, binary.LittleEndian, &sample.Bezier.InDeg); err != nil {
-				return nil, fmt.Errorf("failed to read curve data bezier in: <%w>", err)
-			}
-			if err = binary.Read(reader, binary.LittleEndian, &sample.Bezier.InWeight); err != nil {
-				return nil, fmt.Errorf("failed to read curve data bezier in weight: <%w>", err)
-			}
-			if err = binary.Read(reader, binary.LittleEndian, &sample.Bezier.OutDeg); err != nil {
-				return nil, fmt.Errorf("failed to read curve data bezier out: <%w>", err)
-			}
-			if err = binary.Read(reader, binary.LittleEndian, &sample.Bezier.OutWeight); err != nil {
-				return nil, fmt.Errorf("failed to read curve data bezier out weight: <%w>", err)
-			}
-		}
-
-		//curveData.Add(t, float32(v)/255.0, false)
-		curveData.AddSample(sample)
 	}
 
 	return curveData, nil
+}
+
+func readCurveDataSample(reader io.ReadSeeker) (*choreography.CurveDataSample, error) {
+	sample := &choreography.CurveDataSample{}
+	var err error
+	var t float32
+	var v uint8
+	var hasBezier uint8
+
+	if err = binary.Read(reader, binary.LittleEndian, &t); err != nil {
+		return nil, fmt.Errorf("failed to read curve data time: <%w>", err)
+	}
+	if err = binary.Read(reader, binary.LittleEndian, &v); err != nil {
+		return nil, fmt.Errorf("failed to read curve data value: <%w>", err)
+	}
+	if err = binary.Read(reader, binary.LittleEndian, &hasBezier); err != nil {
+		return nil, fmt.Errorf("failed to read curve data has bezier: <%w>", err)
+	}
+
+	sample.Time = t
+	sample.Value = float32(v) / 255.0
+
+	if hasBezier == 1 {
+		sample.Bezier = &choreography.CurveDataSampleBezier{}
+		if err = binary.Read(reader, binary.LittleEndian, &sample.Bezier.Flags); err != nil {
+			return nil, fmt.Errorf("failed to read curve data bezier flags: <%w>", err)
+		}
+		if err = binary.Read(reader, binary.LittleEndian, &sample.Bezier.InDeg); err != nil {
+			return nil, fmt.Errorf("failed to read curve data bezier in: <%w>", err)
+		}
+		if err = binary.Read(reader, binary.LittleEndian, &sample.Bezier.InWeight); err != nil {
+			return nil, fmt.Errorf("failed to read curve data bezier in weight: <%w>", err)
+		}
+		if err = binary.Read(reader, binary.LittleEndian, &sample.Bezier.OutDeg); err != nil {
+			return nil, fmt.Errorf("failed to read curve data bezier out: <%w>", err)
+		}
+		if err = binary.Read(reader, binary.LittleEndian, &sample.Bezier.OutWeight); err != nil {
+			return nil, fmt.Errorf("failed to read curve data bezier out weight: <%w>", err)
+		}
+	}
+
+	return sample, nil
 }
 
 func readChoreographyActors(reader io.ReadSeeker, strings []string, choreo *choreography.Choreography) error {

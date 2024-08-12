@@ -82,10 +82,11 @@ func (c *CurveData) AddSample(sample *CurveDataSample) {
 }
 
 type CurveDataSample struct {
-	Time     float32
-	Value    float32
-	Selected bool
-	Bezier   *CurveDataSampleBezier
+	Time      float32
+	Value     float32
+	Selected  bool
+	Bezier    *CurveDataSampleBezier
+	CurveType *CurveDataSampleType
 }
 
 type CurveDataSampleBezier struct {
@@ -94,6 +95,11 @@ type CurveDataSampleBezier struct {
 	InWeight  float32
 	OutDeg    float32
 	OutWeight float32
+}
+
+type CurveDataSampleType struct {
+	InType  uint8
+	OutType uint8
 }
 
 type ChoreographyActor struct {
