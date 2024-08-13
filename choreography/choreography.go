@@ -1,12 +1,14 @@
 package choreography
 
 type Choreography struct {
-	Name          string
-	Duration      uint32
-	SoundDuration uint32
-	HasSounds     bool
-	Events        []*ChoreographyEvent
-	Actors        []*ChoreographyActor
+	Name           string
+	Duration       uint32
+	SoundDuration  uint32
+	HasSounds      bool
+	Events         []*ChoreographyEvent
+	Actors         []*ChoreographyActor
+	CurveData      *CurveData
+	IgnorePhonemes bool
 }
 
 func NewChoreography() *Choreography {

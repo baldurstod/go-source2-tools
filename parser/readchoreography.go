@@ -181,6 +181,16 @@ func readChoreographyData(reader io.ReadSeeker, strings []string, choreo *choreo
 		return fmt.Errorf("failed to read choreography actors: <%w>", err)
 	}
 
+	if choreo.CurveData, err = readCurveData(reader, version); err != nil {
+		return fmt.Errorf("failed to read choreography curve data: <%w>", err)
+	}
+
+	var ignorePhonemes uint8
+	if err = binary.Read(reader, binary.LittleEndian, &ignorePhonemes); err != nil {
+		return fmt.Errorf("failed to read choreography ignore phonemes: <%w>", err)
+	}
+	choreo.IgnorePhonemes = ignorePhonemes == 1
+
 	return nil
 }
 
@@ -315,11 +325,13 @@ func readChoreographyEvent(reader io.ReadSeeker, strings []string, version uint8
 	}
 
 	if event.EventType == choreography.SPEAK {
-		if err = binary.Read(reader, binary.LittleEndian, &event.CloseCaptionType); err != nil {
-			return nil, fmt.Errorf("failed to read event close caption type: <%w>", err)
-		}
-		if event.CloseCaptionToken, err = readString(reader, strings); err != nil {
-			return nil, fmt.Errorf("failed to read event close caption token: <%w>", err)
+		if version < 17 {
+			if err = binary.Read(reader, binary.LittleEndian, &event.CloseCaptionType); err != nil {
+				return nil, fmt.Errorf("failed to read event close caption type: <%w>", err)
+			}
+			if event.CloseCaptionToken, err = readString(reader, strings); err != nil {
+				return nil, fmt.Errorf("failed to read event close caption token: <%w>", err)
+			}
 		}
 		if err = binary.Read(reader, binary.LittleEndian, &event.SpeakFlags); err != nil {
 			return nil, fmt.Errorf("failed to read event speak flags: <%w>", err)
