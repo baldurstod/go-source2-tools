@@ -1,13 +1,9 @@
 package source2_test
 
 import (
-	"encoding/json"
 	"log"
-	"os"
-	"path"
 	"testing"
 
-	"github.com/baldurstod/go-source2-tools"
 	"github.com/baldurstod/go-source2-tools/parser"
 )
 
@@ -23,10 +19,12 @@ func TestTuskVcdList(t *testing.T) {
 	}
 
 	log.Println(f)
-	var b []byte
-	if b, err = json.MarshalIndent(f.Blocks["DATA"].Content.(*source2.FileBlockVcdList).Choreographies, "", "\t"); err != nil {
-		t.Error(err)
-		return
-	}
-	os.WriteFile(path.Join(varFolder, "tusk_vcd.json"), b, 0666)
+	/*
+		var b []byte
+		if b, err = json.MarshalIndent(f.Blocks["DATA"].Content.(*source2.FileBlockVcdList).Choreographies, "", "\t"); err != nil {
+			t.Error(err)
+			return
+		}
+		os.WriteFile(path.Join(varFolder, "tusk_vcd.json"), b, 0666)
+	*/
 }
