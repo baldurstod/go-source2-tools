@@ -5,29 +5,29 @@ type Choreography struct {
 	Duration      uint32
 	SoundDuration uint32
 	HasSounds     bool
-	events        []*ChoreographyEvent
-	actors        []*ChoreographyActor
+	Events        []*ChoreographyEvent
+	Actors        []*ChoreographyActor
 }
 
 func NewChoreography() *Choreography {
 	return &Choreography{
-		events: make([]*ChoreographyEvent, 0, 10),
-		actors: make([]*ChoreographyActor, 0, 10),
+		Events: make([]*ChoreographyEvent, 0, 10),
+		Actors: make([]*ChoreographyActor, 0, 10),
 	}
 }
 
 func (c *Choreography) AddEvent(event *ChoreographyEvent) {
-	event.Choreography = c
-	c.events = append(c.events, event)
+	event.choreography = c
+	c.Events = append(c.Events, event)
 }
 
 func (c *Choreography) AddActor(actor *ChoreographyActor) {
-	actor.Choreography = c
-	c.actors = append(c.actors, actor)
+	actor.choreography = c
+	c.Actors = append(c.Actors, actor)
 }
 
 type ChoreographyEvent struct {
-	Choreography  *Choreography
+	choreography  *Choreography
 	EventType     EventType
 	Name          string
 	PreferredName string
@@ -110,7 +110,7 @@ type CurveDataEdge struct {
 }
 
 type ChoreographyActor struct {
-	Choreography *Choreography
+	choreography *Choreography
 	Name         string
 	Active       bool
 	Channels     []*ChoreographyChannel
@@ -121,30 +121,30 @@ func NewChoreographyActor() *ChoreographyActor {
 }
 
 func (a *ChoreographyActor) AddChannel(channel *ChoreographyChannel) {
-	channel.Choreography = a.Choreography
+	channel.choreography = a.choreography
 	a.Channels = append(a.Channels, channel)
 }
 
 type ChoreographyChannel struct {
-	Choreography *Choreography
+	choreography *Choreography
 	Name         string
 	Active       bool
-	events       []*ChoreographyEvent
+	Events       []*ChoreographyEvent
 }
 
 func NewChoreographyChannel() *ChoreographyChannel {
 	return &ChoreographyChannel{
-		events: make([]*ChoreographyEvent, 0, 10),
+		Events: make([]*ChoreographyEvent, 0, 10),
 	}
 }
 
 func (c *ChoreographyChannel) AddEvent(event *ChoreographyEvent) {
-	event.Choreography = c.Choreography
-	c.events = append(c.events, event)
+	event.choreography = c.choreography
+	c.Events = append(c.Events, event)
 }
 
 type ChoreographyTag struct {
-	Choreography *Choreography
+	choreography *Choreography
 	Name         string
 	Value        float32
 }
