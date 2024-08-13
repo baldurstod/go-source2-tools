@@ -68,7 +68,9 @@ func (ce *ChoreographyEvent) AddTrack(name string) *FlexAnimationTrack {
 }
 
 type CurveData struct {
-	Ramp []*CurveDataSample
+	Ramp      []*CurveDataSample
+	LeftEdge  *CurveDataEdge
+	RightEdge *CurveDataEdge
 }
 
 func NewCurveData() *CurveData {
@@ -100,6 +102,11 @@ type CurveDataSampleBezier struct {
 type CurveDataSampleType struct {
 	InType  uint8
 	OutType uint8
+}
+
+type CurveDataEdge struct {
+	CurveType CurveDataSampleType
+	ZeroValue float32
 }
 
 type ChoreographyActor struct {
